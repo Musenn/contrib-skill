@@ -139,6 +139,8 @@ contrib_output/
   full_report.md             # consolidated report
 ```
 
+> 📂 See [docs/example-output/](docs/example-output/) for a complete, unedited run against a simulated e-commerce repository.
+
 ## Risk levels
 
 | Level | Meaning |

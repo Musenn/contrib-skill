@@ -1,0 +1,511 @@
+{
+  "project": {
+    "repo_path": "/private/tmp/contrib_demo_repo",
+    "project_name": "contrib_demo_repo",
+    "languages": {
+      "JavaScript": 5
+    },
+    "frameworks": [
+      "Express"
+    ],
+    "databases": [
+      "MySQL"
+    ],
+    "middlewares": [
+      "Redis"
+    ],
+    "deployment": [],
+    "architecture_style": "MVC / Model-Service-Controller 倾向",
+    "inferred_domain": "支付（次要相关：电商/订单交易）",
+    "confidence": "高"
+  },
+  "tech_stack": {
+    "languages": {
+      "JavaScript": 5
+    },
+    "frameworks": [
+      "Express"
+    ],
+    "databases": [
+      "MySQL"
+    ],
+    "middlewares": [
+      "Redis"
+    ],
+    "build_tools": [
+      "npm/yarn/pnpm"
+    ],
+    "deployment": [],
+    "test_tools": [
+      "Jest"
+    ],
+    "possible_architecture_style": "后端服务（推断）",
+    "evidence_files": [
+      "package.json"
+    ]
+  },
+  "architecture": {
+    "architecture_style": "MVC / Model-Service-Controller 倾向",
+    "module_map": {
+      "src": [
+        "src",
+        "src/controller",
+        "src/service"
+      ],
+      "tests": [
+        "tests"
+      ]
+    },
+    "layer_analysis": [
+      "Controller 层（接口/路由）",
+      "Service 层（业务逻辑）"
+    ],
+    "dependency_observations": [
+      "主要框架：Express（来自 package.json）",
+      "数据存储：MySQL",
+      "中间件：Redis"
+    ],
+    "architecture_strengths": [
+      "目录体现出分层意识，职责划分有迹可循",
+      "存在测试目录（tests）"
+    ],
+    "architecture_risks": [
+      "未发现部署/CI 配置，交付方式无法从仓库确认"
+    ],
+    "confidence": "中"
+  },
+  "business": {
+    "inferred_domain": "支付（次要相关：电商/订单交易）",
+    "project_goal": "README 描述（事实）：一个简单的电商订单与支付后端服务。",
+    "solved_problem": "推断：见 README 描述；具体业务痛点建议向项目负责人确认",
+    "target_users": "推断：需结合业务方确认（仓库内无直接证据）",
+    "core_business_flow": "推断：订单创建与状态流转 → 支付与回调处理",
+    "confidence": "高",
+    "missing_information_questions": [
+      "这个项目是真实上线、内部使用，还是课程/练习项目？",
+      "项目的实际用户是谁？大概什么量级？",
+      "项目立项的直接原因是什么（业务痛点 / 课程要求 / 个人兴趣）？",
+      "是否有线上运行数据（QPS、日活、数据量）可以补充？",
+      "团队总人数和分工是怎样的？"
+    ],
+    "evidence_sources": [
+      "README: README.md",
+      "领域关键词命中：payment, pay, 支付, 回调"
+    ]
+  },
+  "commits": [
+    {
+      "hash": "1b8f3e91fc6df144760e7280a38eea655120b373",
+      "short_hash": "1b8f3e9",
+      "author_name": "Alice Zhang",
+      "author_email": "alice@example.com",
+      "date": "2025-03-15T09:00:00+08:00",
+      "message": "docs: update readme",
+      "changed_files": [
+        "README.md"
+      ],
+      "additions": 3,
+      "deletions": 1,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "docs",
+      "type_confidence": "高",
+      "changed_modules": [
+        "(root)"
+      ],
+      "possible_reason": "推断：该提交属于 docs 类变更（依据关键词 doc, docs, readme, readme, .md）",
+      "possible_impact": "推断：完善文档与说明，降低协作成本",
+      "evidence_keywords": [
+        "doc",
+        "docs",
+        "readme",
+        "readme",
+        ".md"
+      ],
+      "risk_notes": ""
+    },
+    {
+      "hash": "4367e684e33bff1b3a888e6cc33c9f69a3765f59",
+      "short_hash": "4367e68",
+      "author_name": "Bob Li",
+      "author_email": "bob@example.com",
+      "date": "2025-03-10T10:00:00+08:00",
+      "message": "test: 补充订单服务单元测试",
+      "changed_files": [
+        "tests/order_service.test.js"
+      ],
+      "additions": 1,
+      "deletions": 0,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "test",
+      "type_confidence": "高",
+      "changed_modules": [
+        "tests"
+      ],
+      "possible_reason": "推断：该提交属于 test 类变更（依据关键词 test, 测试）",
+      "possible_impact": "推断：补充测试，提升质量保障与回归能力",
+      "evidence_keywords": [
+        "test",
+        "测试"
+      ],
+      "risk_notes": ""
+    },
+    {
+      "hash": "0a8f8b6d66a1600afe8d05994b00fb7317f8cfe4",
+      "short_hash": "0a8f8b6",
+      "author_name": "Alice Zhang",
+      "author_email": "alice@example.com",
+      "date": "2025-03-05T16:00:00+08:00",
+      "message": "perf: 订单查询增加 redis 缓存",
+      "changed_files": [
+        "src/service/order_service.js"
+      ],
+      "additions": 1,
+      "deletions": 0,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "performance",
+      "type_confidence": "高",
+      "changed_modules": [
+        "service"
+      ],
+      "possible_reason": "推断：该提交属于 performance 类变更（依据关键词 perf, 缓存）",
+      "possible_impact": "推断：优化性能相关路径（缓存/批处理/异步/索引等）",
+      "evidence_keywords": [
+        "perf",
+        "缓存"
+      ],
+      "risk_notes": ""
+    },
+    {
+      "hash": "80e818814b936f43612369c3550710064db59d5d",
+      "short_hash": "80e8188",
+      "author_name": "Bob Li",
+      "author_email": "bob@example.com",
+      "date": "2025-02-25T23:30:00+08:00",
+      "message": "fix: 修复支付回调空指针",
+      "changed_files": [
+        "src/service/payment_service.js"
+      ],
+      "additions": 1,
+      "deletions": 1,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "bugfix",
+      "type_confidence": "高",
+      "changed_modules": [
+        "service"
+      ],
+      "possible_reason": "推断：该提交属于 bugfix 类变更（依据关键词 fix, 修复, 空指针）",
+      "possible_impact": "推断：修复缺陷，提升稳定性与正确性",
+      "evidence_keywords": [
+        "fix",
+        "修复",
+        "空指针"
+      ],
+      "risk_notes": ""
+    },
+    {
+      "hash": "171ec66b3d046da61637d2194167361ebd5c8af5",
+      "short_hash": "171ec66",
+      "author_name": "Alice Zhang",
+      "author_email": "alice@example.com",
+      "date": "2025-02-20T15:00:00+08:00",
+      "message": "feat: 接入支付回调",
+      "changed_files": [
+        "src/controller/payment_controller.js",
+        "src/service/payment_service.js"
+      ],
+      "additions": 2,
+      "deletions": 0,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "feature",
+      "type_confidence": "高",
+      "changed_modules": [
+        "controller",
+        "service"
+      ],
+      "possible_reason": "推断：该提交属于 feature 类变更（依据关键词 feat, 接入）",
+      "possible_impact": "推断：为项目引入新功能或扩展既有能力",
+      "evidence_keywords": [
+        "feat",
+        "接入"
+      ],
+      "risk_notes": ""
+    },
+    {
+      "hash": "b8b8865069f639030107026fc25d5fcac618ed2b",
+      "short_hash": "b8b8865",
+      "author_name": "Alice Zhang",
+      "author_email": "alice@example.com",
+      "date": "2025-02-10T11:00:00+08:00",
+      "message": "feat: 实现订单状态流转",
+      "changed_files": [
+        "src/service/order_service.js"
+      ],
+      "additions": 1,
+      "deletions": 0,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "feature",
+      "type_confidence": "高",
+      "changed_modules": [
+        "service"
+      ],
+      "possible_reason": "推断：该提交属于 feature 类变更（依据关键词 feat, 实现）",
+      "possible_impact": "推断：为项目引入新功能或扩展既有能力",
+      "evidence_keywords": [
+        "feat",
+        "实现"
+      ],
+      "risk_notes": ""
+    },
+    {
+      "hash": "1133c4f4b5dbb805e22f4cee2e3a8ee31450e590",
+      "short_hash": "1133c4f",
+      "author_name": "Alice Zhang",
+      "author_email": "alice@example.com",
+      "date": "2025-01-20T14:30:00+08:00",
+      "message": "feat: 新增订单创建接口",
+      "changed_files": [
+        "src/controller/order_controller.js",
+        "src/service/order_service.js"
+      ],
+      "additions": 2,
+      "deletions": 0,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "feature",
+      "type_confidence": "高",
+      "changed_modules": [
+        "controller",
+        "service"
+      ],
+      "possible_reason": "推断：该提交属于 feature 类变更（依据关键词 feat, 新增）",
+      "possible_impact": "推断：为项目引入新功能或扩展既有能力",
+      "evidence_keywords": [
+        "feat",
+        "新增"
+      ],
+      "risk_notes": ""
+    },
+    {
+      "hash": "2f052fd8cf374ffa6e5e5b3b63db06f5019de8a8",
+      "short_hash": "2f052fd",
+      "author_name": "Alice Zhang",
+      "author_email": "alice@example.com",
+      "date": "2025-01-05T10:00:00+08:00",
+      "message": "init project scaffold",
+      "changed_files": [
+        ".gitignore",
+        "README.md",
+        "package.json"
+      ],
+      "additions": 5,
+      "deletions": 0,
+      "file_stats": [],
+      "is_merge": false,
+      "inferred_type": "architecture",
+      "type_confidence": "中",
+      "changed_modules": [
+        "(root)"
+      ],
+      "possible_reason": "推断：该提交属于 architecture 类变更（依据关键词 init project, scaffold, package.json）",
+      "possible_impact": "推断：搭建或调整项目基础结构",
+      "evidence_keywords": [
+        "init project",
+        "scaffold",
+        "package.json"
+      ],
+      "risk_notes": ""
+    }
+  ],
+  "authors": [
+    {
+      "author_name": "Alice Zhang",
+      "author_email": "alice@example.com",
+      "commit_count": 6,
+      "first_commit_date": "2025-01-05T10:00:00+08:00",
+      "last_commit_date": "2025-03-15T09:00:00+08:00",
+      "total_additions": 14,
+      "total_deletions": 1,
+      "main_files": [
+        "src/service/order_service.js",
+        "README.md",
+        "src/controller/payment_controller.js",
+        "src/service/payment_service.js",
+        "src/controller/order_controller.js",
+        ".gitignore",
+        "package.json"
+      ],
+      "main_modules": [
+        "(root)",
+        "service",
+        "controller"
+      ],
+      "change_type_distribution": {
+        "docs": 1,
+        "performance": 1,
+        "feature": 3,
+        "architecture": 1
+      },
+      "activity_timeline": {
+        "2025-01": 2,
+        "2025-02": 2,
+        "2025-03": 2
+      },
+      "weekday_commits": 4,
+      "weekend_commits": 2,
+      "daytime_commits": 6,
+      "night_commits": 0,
+      "is_project_initializer": true,
+      "touches_core_modules": true,
+      "does_late_maintenance": true,
+      "contribution_roles": [
+        "项目初始化者",
+        "核心业务开发者",
+        "后端开发者"
+      ],
+      "contribution_level": "很高",
+      "module_ownership": {
+        "(root)": "deep",
+        "service": "deep",
+        "controller": "participant"
+      },
+      "evidence_commits": [
+        "1b8f3e9",
+        "0a8f8b6",
+        "171ec66",
+        "b8b8865",
+        "1133c4f",
+        "2f052fd"
+      ]
+    },
+    {
+      "author_name": "Bob Li",
+      "author_email": "bob@example.com",
+      "commit_count": 2,
+      "first_commit_date": "2025-02-25T23:30:00+08:00",
+      "last_commit_date": "2025-03-10T10:00:00+08:00",
+      "total_additions": 2,
+      "total_deletions": 1,
+      "main_files": [
+        "tests/order_service.test.js",
+        "src/service/payment_service.js"
+      ],
+      "main_modules": [
+        "tests",
+        "service"
+      ],
+      "change_type_distribution": {
+        "test": 1,
+        "bugfix": 1
+      },
+      "activity_timeline": {
+        "2025-02": 1,
+        "2025-03": 1
+      },
+      "weekday_commits": 2,
+      "weekend_commits": 0,
+      "daytime_commits": 1,
+      "night_commits": 1,
+      "is_project_initializer": false,
+      "touches_core_modules": true,
+      "does_late_maintenance": true,
+      "contribution_roles": [
+        "Bug 修复者",
+        "后端开发者"
+      ],
+      "contribution_level": "中等",
+      "module_ownership": {
+        "tests": "assistant",
+        "service": "assistant"
+      },
+      "evidence_commits": [
+        "4367e68",
+        "80e8188"
+      ]
+    }
+  ],
+  "target_author": "Alice",
+  "resume_claims": [
+    {
+      "text": "参与 service 模块的开发与维护，工作包括 功能开发（3 次提交）、性能相关改动（1 次提交）",
+      "risk_level": "safe",
+      "support_evidence": [
+        "commit 0a8f8b6（performance）：src/service/order_service.js",
+        "commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js",
+        "commit b8b8865（feature）：src/service/order_service.js",
+        "commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js"
+      ],
+      "needs_user_confirmation": false,
+      "forbidden_reason": ""
+    },
+    {
+      "text": "参与 controller 模块的开发与维护，工作包括 功能开发（2 次提交）",
+      "risk_level": "safe",
+      "support_evidence": [
+        "commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js",
+        "commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js"
+      ],
+      "needs_user_confirmation": false,
+      "forbidden_reason": ""
+    },
+    {
+      "text": "深度参与 service 模块，基于 Express、MySQL、Redis，工作包括 功能开发（3 次提交）、性能相关改动（1 次提交）",
+      "risk_level": "safe",
+      "support_evidence": [
+        "commit 0a8f8b6（performance）：src/service/order_service.js",
+        "commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js",
+        "commit b8b8865（feature）：src/service/order_service.js",
+        "commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js"
+      ],
+      "needs_user_confirmation": false,
+      "forbidden_reason": ""
+    },
+    {
+      "text": "参与 controller 模块，基于 Express、MySQL、Redis，工作包括 功能开发（2 次提交）",
+      "risk_level": "safe",
+      "support_evidence": [
+        "commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js",
+        "commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js"
+      ],
+      "needs_user_confirmation": false,
+      "forbidden_reason": ""
+    },
+    {
+      "text": "深度参与 service 模块开发，基于 Express、MySQL、Redis，工作包括 功能开发（3 次提交）、性能相关改动（1 次提交）",
+      "risk_level": "safe",
+      "support_evidence": [
+        "commit 0a8f8b6（performance）：src/service/order_service.js",
+        "commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js",
+        "commit b8b8865（feature）：src/service/order_service.js",
+        "commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js"
+      ],
+      "needs_user_confirmation": false,
+      "forbidden_reason": ""
+    },
+    {
+      "text": "参与 controller 模块，基于 Express、MySQL、Redis，工作包括 功能开发（2 次提交）",
+      "risk_level": "safe",
+      "support_evidence": [
+        "commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js",
+        "commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js"
+      ],
+      "needs_user_confirmation": false,
+      "forbidden_reason": ""
+    }
+  ],
+  "analysis_params": {
+    "base": null,
+    "branch": null,
+    "since": null,
+    "until": null,
+    "mode": "full",
+    "strict": false,
+    "max_commits": 2000,
+    "has_tests": true
+  }
+}

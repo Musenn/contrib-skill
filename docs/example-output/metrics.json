@@ -1,0 +1,30 @@
+{
+  "total_commits": 8,
+  "total_authors": 2,
+  "commit_type_distribution": {
+    "docs": 1,
+    "test": 1,
+    "performance": 1,
+    "bugfix": 1,
+    "feature": 3,
+    "architecture": 1
+  },
+  "authors": [
+    {
+      "name": "Alice Zhang",
+      "email": "alice@example.com",
+      "commits": 6,
+      "additions": 14,
+      "deletions": 1,
+      "contribution_level": "很高"
+    },
+    {
+      "name": "Bob Li",
+      "email": "bob@example.com",
+      "commits": 2,
+      "additions": 2,
+      "deletions": 1,
+      "contribution_level": "中等"
+    }
+  ]
+}

@@ -139,6 +139,8 @@ contrib_output/
   full_report.md             # 汇总报告
 ```
 
+> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。
+
 ## 风险分级
 
 | 等级 | 含义 |
