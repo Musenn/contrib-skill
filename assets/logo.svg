@@ -1,0 +1,18 @@
+<svg width="480" height="120" viewBox="0 0 480 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- card -->
+  <rect x="1" y="1" width="478" height="118" rx="24" fill="#0D1117"/>
+  <rect x="1.75" y="1.75" width="476.5" height="116.5" rx="23.25" stroke="#30363D" stroke-width="1.5"/>
+  <!-- commit graph: main line -->
+  <path d="M40 96 V52 C40 42 46 36 56 36 H66" stroke="#3FB950" stroke-width="5" stroke-linecap="round" fill="none"/>
+  <circle cx="40" cy="96" r="7" fill="#0D1117" stroke="#3FB950" stroke-width="5"/>
+  <!-- branch line -->
+  <path d="M40 72 H54" stroke="#58A6FF" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="62" cy="72" r="6" fill="#0D1117" stroke="#58A6FF" stroke-width="5"/>
+  <!-- magnifier over the head commit -->
+  <circle cx="80" cy="36" r="16" fill="#0D1117" stroke="#E3B341" stroke-width="5"/>
+  <circle cx="80" cy="36" r="5" fill="#E3B341"/>
+  <path d="M92 48 L103 59" stroke="#E3B341" stroke-width="7" stroke-linecap="round"/>
+  <!-- wordmark -->
+  <text x="136" y="62" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="34" font-weight="700" fill="#E6EDF3">contrib-skill</text>
+  <text x="138" y="92" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="16" fill="#8B949E">Git evidence → credible resume &amp; interview prep</text>
+</svg>
