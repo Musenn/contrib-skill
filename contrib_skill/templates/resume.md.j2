@@ -1,0 +1,76 @@
+# 简历表述建议{% if author_name %}（{{ author_name }}）{% endif %}
+
+> 每条表述均附风险等级与 Git 证据。`safe` 可直接使用；`needs_confirmation` 须本人确认后使用；`risky` 不建议使用。
+
+## 一、保守真实版（最稳妥，适合背调严格的公司）
+
+{% for c in resume.conservative %}
+- {{ c.text }}
+  - 风险等级：{{ c.risk_level }}{% if c.forbidden_reason %}（{{ c.forbidden_reason }}）{% endif %}
+  {% for e in c.support_evidence %}- 证据：{{ e }}
+  {% endfor %}
+{% else %}
+（无符合条件的表述）
+{% endfor %}
+
+## 二、标准求职版（按模块归属等级用词）
+
+{% for c in resume.standard %}
+- {{ c.text }}
+  - 风险等级：{{ c.risk_level }}{% if c.forbidden_reason %}（{{ c.forbidden_reason }}）{% endif %}
+  {% for e in c.support_evidence %}- 证据：{{ e }}
+  {% endfor %}
+{% else %}
+（无符合条件的表述）
+{% endfor %}
+
+## 三、强化表达版（仅在证据允许的范围内加强）
+
+{% for c in resume.enhanced %}
+- {{ c.text }}
+  - 风险等级：{{ c.risk_level }}{% if c.forbidden_reason %}（{{ c.forbidden_reason }}）{% endif %}
+  {% for e in c.support_evidence %}- 证据：{{ e }}
+  {% endfor %}
+{% else %}
+（无符合条件的表述）
+{% endfor %}
+
+## 四、STAR 版
+
+{% for s in resume.star %}
+### {{ s.module }} 模块
+
+- **Situation**：{{ s.situation }}
+- **Task**：{{ s.task }}
+- **Action**：{{ s.action }}
+- **Result**：{{ s.result }}
+{% for e in s.evidence %}- 证据：{{ e }}
+{% endfor %}
+{% else %}
+（无 STAR 条目）
+{% endfor %}
+
+## 五、英文版（English）
+
+{% for c in resume.english %}
+- {{ c.text }}
+  - Risk level: {{ c.risk_level }}
+{% else %}
+(No bullets available)
+{% endfor %}
+
+## 六、目标岗位适配建议
+
+{% for n in resume.target_role_notes %}
+- {{ n }}
+{% else %}
+- 未指定目标岗位（--target-role）
+{% endfor %}
+
+## 七、可补充指标建议
+
+以下指标**仓库中没有证据**，只有你能提供真实数据后才可写入简历：
+
+{% for m in resume.metric_suggestions %}
+{{ loop.index }}. {{ m }}
+{% endfor %}

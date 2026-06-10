@@ -1,0 +1,38 @@
+# 简历真实性与背调风险报告
+
+> 风险等级说明：
+> - **safe**：Git 证据充分，可直接使用
+> - **needs_confirmation**：需要本人确认（业务指标、线上效果、团队角色等仓库无法佐证的内容）
+> - **risky**：不建议使用，证据不足或可能冒领他人贡献
+
+## 总览
+
+- 共评估表述：{{ claims | length }} 条
+- safe：{{ claims | selectattr("risk_level", "equalto", "safe") | list | length }} 条
+- needs_confirmation：{{ claims | selectattr("risk_level", "equalto", "needs_confirmation") | list | length }} 条
+- risky：{{ claims | selectattr("risk_level", "equalto", "risky") | list | length }} 条
+
+## 逐条评估
+
+{% for c in claims %}
+### {{ loop.index }}. {{ c.text }}
+
+- 风险等级：**{{ c.risk_level }}**
+- 需要本人确认：{{ "是" if c.needs_user_confirmation else "否" }}
+{% if c.forbidden_reason %}- 原因：{{ c.forbidden_reason }}
+{% endif %}
+{% if c.support_evidence %}- 证据：
+{% for e in c.support_evidence %}  - {{ e }}
+{% endfor %}
+{% else %}- 证据：无
+{% endif %}
+
+{% endfor %}
+
+## 通用背调提醒
+
+1. 量化指标（性能提升 X%、支撑 X 并发）没有压测/监控数据就不要写。
+2. 「主导」「从 0 到 1」「独立负责」只有在 Git 证据强支撑时才可使用。
+3. 他人主要贡献的模块，最多写「参与」或「协助」。
+4. 项目性质（上线 / 课程 / 练习）如实呈现，背调或追问极易暴露。
+5. 面试时所有表述都应能落到具体 commit 与文件，这是最硬的证据。

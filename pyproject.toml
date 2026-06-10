@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contrib-skill"
+version = "0.1.0"
+description = "代码贡献洞察与项目包装工具：基于 Git 证据链分析项目背景、架构与个人贡献，生成可背调的简历与面试材料"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.9",
+    "rich>=13.0",
+    "pydantic>=2.0",
+    "jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+contrib-skill = "contrib_skill.main:main"
+
+[tool.setuptools.packages.find]
+include = ["contrib_skill*"]
+
+[tool.setuptools.package-data]
+contrib_skill = ["templates/*.j2"]

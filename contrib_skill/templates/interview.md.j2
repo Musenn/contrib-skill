@@ -1,0 +1,55 @@
+# 面试话术{% if author_name %}（{{ author_name }}）{% endif %}
+
+## 一、30 秒版项目介绍
+
+{{ interview.intro_30s }}
+
+## 二、1 分钟版项目介绍
+
+{{ interview.intro_1m }}
+
+## 三、3 分钟版项目介绍
+
+{{ interview.intro_3m }}
+
+## 四、技术难点（有 commit 证据锚点）
+
+{% for d in interview.difficulties %}
+### {{ loop.index }}. {{ d.title }}
+
+{{ d.detail }}
+{% if d.evidence %}
+证据：{{ d.evidence }}
+{% endif %}
+{% endfor %}
+
+## 五、个人贡献讲法
+
+{{ interview.contribution_pitch }}
+
+## 六、高频追问与建议回答
+
+{% for item in interview.faq %}
+**Q{{ loop.index }}：{{ item.q }}**
+
+{{ item.a }}
+
+{% endfor %}
+
+## 七、项目不足（被问到时的诚实答案）
+
+{% for w in interview.weaknesses %}
+- {{ w }}
+{% endfor %}
+
+## 八、后续优化方向
+
+{% for i in interview.improvements %}
+- {{ i }}
+{% endfor %}
+
+## 九、如何避免被问穿
+
+{% for tip in interview.anti_grilling %}
+{{ loop.index }}. {{ tip }}
+{% endfor %}
