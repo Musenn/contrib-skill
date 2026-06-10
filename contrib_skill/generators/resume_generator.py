@@ -65,8 +65,12 @@ def generate_resume(
     target_role: str = "",
     strict: bool = False,
 ) -> dict:
-    modules = author_ev.main_modules[:4]
+    # (root) 是「仓库根目录散落文件」的占位，不构成业务模块，仅在没有其他模块时保留
+    modules = [m for m in author_ev.main_modules if m != "(root)"][:4]
+    if not modules and "(root)" in author_ev.main_modules:
+        modules = ["(root)"]
     tech_str = _tech_string(tech)
+    tech_str_en = _tech_string_en(tech)
 
     conservative: list[ResumeClaim] = []
     standard: list[ResumeClaim] = []
@@ -92,7 +96,7 @@ def generate_resume(
         # 标准求职版：按模块归属等级用词
         standard.append(
             check_claim(
-                f"{verb} {module} 模块，基于 {tech_str} {work_desc}",
+                f"{verb} {module} 模块，基于 {tech_str}，{work_desc}",
                 author_ev, evidence,
             )
         )
@@ -107,7 +111,7 @@ def generate_resume(
         en_verb = _VERB_EN.get(verb, "Contributed to")
         english.append(
             check_claim(
-                f"{en_verb} the {module} module ({tech_str}); "
+                f"{en_verb} the {module} module ({tech_str_en}); "
                 f"work covered {_work_description_en(mod_commits)}.",
                 author_ev, evidence,
             )
@@ -134,6 +138,11 @@ def generate_resume(
 def _tech_string(tech: TechStackEvidence) -> str:
     parts = tech.frameworks[:3] + tech.databases[:2] + tech.middlewares[:2]
     return "、".join(parts) if parts else "项目现有技术栈"
+
+
+def _tech_string_en(tech: TechStackEvidence) -> str:
+    parts = tech.frameworks[:3] + tech.databases[:2] + tech.middlewares[:2]
+    return ", ".join(parts) if parts else "the project's existing tech stack"
 
 
 def _evidence_list(module: str, commits: list[GitCommitEvidence]) -> list[str]:
@@ -170,11 +179,11 @@ def _enhanced_text(
             days = (author_ev.last_commit_date - author_ev.first_commit_date).days
             if days >= 60:
                 span = f"，持续迭代 {days // 30} 个月以上"
-        return f"主要负责 {module} 模块的设计与实现，基于 {tech_str} {work_desc}{span}"
+        return f"主要负责 {module} 模块的设计与实现，基于 {tech_str}，{work_desc}{span}"
     if verb == "深度参与":
-        return f"深度参与 {module} 模块开发，基于 {tech_str} {work_desc}"
+        return f"深度参与 {module} 模块开发，基于 {tech_str}，{work_desc}"
     # 归属等级不够，强化版也不拔高
-    return f"{verb} {module} 模块，基于 {tech_str} {work_desc}"
+    return f"{verb} {module} 模块，基于 {tech_str}，{work_desc}"
 
 
 def _star_entry(

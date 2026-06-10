@@ -21,7 +21,10 @@ def generate_interview(
     tech_str = "、".join(
         (tech.frameworks[:4] + tech.databases[:2] + tech.middlewares[:2]) or ["仓库内可见技术栈"]
     )
-    modules_str = "、".join(author_ev.main_modules[:3]) or "若干模块"
+    modules_str = "、".join(
+        [m for m in author_ev.main_modules if m != "(root)"][:3]
+        or author_ev.main_modules[:3]
+    ) or "若干模块"
 
     intro_30s = (
         f"这个项目是{_short_domain(biz.inferred_domain)}方向的系统（{project.project_name}），"
@@ -38,7 +41,7 @@ def generate_interview(
 
     intro_3m = intro_1m + (
         f"\n\n业务背景方面：{biz.project_goal}\n"
-        f"核心流程（推断）：{biz.core_business_flow}\n"
+        f"核心流程：{biz.core_business_flow}\n"
         f"我的具体贡献都有 commit 可查，代表性提交："
         f"{', '.join(author_ev.evidence_commits[:5])}。"
         "讲项目时我会按「背景 → 我负责的模块 → 具体改动 → 验证方式」的顺序展开。"

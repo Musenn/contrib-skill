@@ -1,4 +1,4 @@
-# 简历表述建议{% if author_name %}（{{ author_name }}）{% endif %}
+# 简历表述建议{{ "（" ~ author_name ~ "）" if author_name }}
 
 > 每条表述均附风险等级与 Git 证据。`safe` 可直接使用；`needs_confirmation` 须本人确认后使用；`risky` 不建议使用。
 
@@ -6,9 +6,10 @@
 
 {% for c in resume.conservative %}
 - {{ c.text }}
-  - 风险等级：{{ c.risk_level }}{% if c.forbidden_reason %}（{{ c.forbidden_reason }}）{% endif %}
-  {% for e in c.support_evidence %}- 证据：{{ e }}
-  {% endfor %}
+    - 风险等级：{{ c.risk_level }}{{ "（" ~ c.forbidden_reason ~ "）" if c.forbidden_reason }}
+{% for e in c.support_evidence %}
+    - 证据：{{ e }}
+{% endfor %}
 {% else %}
 （无符合条件的表述）
 {% endfor %}
@@ -17,9 +18,10 @@
 
 {% for c in resume.standard %}
 - {{ c.text }}
-  - 风险等级：{{ c.risk_level }}{% if c.forbidden_reason %}（{{ c.forbidden_reason }}）{% endif %}
-  {% for e in c.support_evidence %}- 证据：{{ e }}
-  {% endfor %}
+    - 风险等级：{{ c.risk_level }}{{ "（" ~ c.forbidden_reason ~ "）" if c.forbidden_reason }}
+{% for e in c.support_evidence %}
+    - 证据：{{ e }}
+{% endfor %}
 {% else %}
 （无符合条件的表述）
 {% endfor %}
@@ -28,9 +30,10 @@
 
 {% for c in resume.enhanced %}
 - {{ c.text }}
-  - 风险等级：{{ c.risk_level }}{% if c.forbidden_reason %}（{{ c.forbidden_reason }}）{% endif %}
-  {% for e in c.support_evidence %}- 证据：{{ e }}
-  {% endfor %}
+    - 风险等级：{{ c.risk_level }}{{ "（" ~ c.forbidden_reason ~ "）" if c.forbidden_reason }}
+{% for e in c.support_evidence %}
+    - 证据：{{ e }}
+{% endfor %}
 {% else %}
 （无符合条件的表述）
 {% endfor %}
@@ -44,8 +47,10 @@
 - **Task**：{{ s.task }}
 - **Action**：{{ s.action }}
 - **Result**：{{ s.result }}
-{% for e in s.evidence %}- 证据：{{ e }}
+{% for e in s.evidence %}
+- 证据：{{ e }}
 {% endfor %}
+
 {% else %}
 （无 STAR 条目）
 {% endfor %}
@@ -54,7 +59,7 @@
 
 {% for c in resume.english %}
 - {{ c.text }}
-  - Risk level: {{ c.risk_level }}
+    - Risk level: {{ c.risk_level }}
 {% else %}
 (No bullets available)
 {% endfor %}

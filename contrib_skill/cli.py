@@ -30,6 +30,11 @@ app = typer.Typer(
 console = Console()
 
 
+@app.callback()
+def _root() -> None:
+    """contrib-skill：基于 Git 证据链的贡献洞察工具。"""
+
+
 @app.command()
 def analyze(
     repo: str = typer.Option(".", "--repo", help="Git 仓库路径"),
