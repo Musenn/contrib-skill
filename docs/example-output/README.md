@@ -1,5 +1,7 @@
 # 输出示例 / Output Example
 
+本目录用于展示生成器的完整输出；三段式句法、项目背景校验和指标使用边界见[高密度简历项目经历写作指南](../resume-writing-guide.md)。
+
 本目录是 contrib-skill 对一个**模拟仓库**的完整输出，未做任何手工修改。
 
 This directory contains the complete, unedited output of contrib-skill against a **simulated repository**.

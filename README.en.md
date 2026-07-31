@@ -34,6 +34,8 @@ It is not a commit counter, and it is not a resume fabricator. It digs out the w
 - **Zero fabricated metrics**: without benchmark or load-test evidence in the repository, numbers like "improved performance by 30%" or "handles millions of concurrent users" are never generated — instead you get a checklist of real metrics worth adding
 - **Every suggestion carries evidence**: each resume bullet cites commit hashes, file paths, change types, and a risk level
 
+For the complete three-part sentence model, project-context validation, technical-term evidence rules, and metric boundaries, see the [resume project writing guide](docs/resume-writing-guide.md) (Chinese). A measured-data example is available in the [benchmark resume example](docs/benchmark-resume-example.md).
+
 ## How it works
 
 ```
@@ -167,7 +169,7 @@ contrib_output/
   full_report.md             # consolidated report
 ```
 
-> 📂 See [docs/example-output/](docs/example-output/) for a complete, unedited run against a simulated e-commerce repository, and [docs/benchmark-resume-example.md](docs/benchmark-resume-example.md) for an environment-qualified measured-data example.
+> 📂 See [docs/example-output/](docs/example-output/) for a complete, unedited run against a simulated e-commerce repository, the [resume project writing guide](docs/resume-writing-guide.md) for the causal three-part model and evidence boundaries, and [docs/benchmark-resume-example.md](docs/benchmark-resume-example.md) for an environment-qualified measured-data example.
 
 ## Risk levels
 

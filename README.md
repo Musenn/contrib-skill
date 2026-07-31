@@ -55,6 +55,8 @@
 
 完整结果见 [`docs/example-output/06_resume_bullets.md`](docs/example-output/06_resume_bullets.md)。
 
+三段式句法、项目性质校验、技术词汇准入和指标证据规则见[高密度简历项目经历写作指南](docs/resume-writing-guide.md)；有实测数据时的完整写法见[本地压测数据示例](docs/benchmark-resume-example.md)。
+
 ## 工作原理
 
 ```
@@ -224,7 +226,7 @@ contrib_output/
   full_report.md             # 汇总报告
 ```
 
-> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。项目简介保持两句，编号按“技术主题：问题 → 方案/机制 → 结果”展开；MVC/DDD/Repository/Strategy 等词汇只在证据命中时出现。未提供压测报告时不生成量化指标，而是输出与每条贡献对应的指标建议。数据写法见 [本地压测数据示例](docs/benchmark-resume-example.md)。
+> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。项目简介保持两句，编号按“技术主题：问题 → 方案/机制 → 结果”展开；MVC/DDD/Repository/Strategy 等词汇只在证据命中时出现。未提供压测报告时不生成量化指标，而是输出与每条贡献对应的指标建议。规则说明见[高密度简历项目经历写作指南](docs/resume-writing-guide.md)，数据写法见[本地压测数据示例](docs/benchmark-resume-example.md)。
 
 ## 风险分级
 
