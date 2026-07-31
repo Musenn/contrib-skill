@@ -79,6 +79,9 @@ class ReportGenerator:
         if "risk" in sections_wanted:
             bodies["risk"] = self.env.get_template("risk.md.j2").render(
                 claims=[c.model_dump() for c in result.resume_claims],
+                context_assessments=[
+                    item.model_dump() for item in result.project_context_assessments
+                ],
             )
             written.append(self._write_md("08_claim_risk_report.md", bodies["risk"]))
 
@@ -167,6 +170,22 @@ class ReportGenerator:
             f"- **目标用户**：{b.target_users}",
             f"- **核心业务流程**：{b.core_business_flow}",
             f"- **证据来源**：{'；'.join(b.evidence_sources) or '无'}",
+        ]
+        if result.project_context_assessments:
+            lines += [
+                "",
+                "## 用户提供背景与仓库校验",
+                "",
+            ]
+            for item in result.project_context_assessments:
+                lines += [
+                    f"- **声明**：{item.statement}",
+                    f"  - 来源：{item.source}",
+                    f"  - 风险等级：`{item.risk_level}`",
+                    f"  - 分析：{item.analysis}",
+                ]
+                lines += [f"  - 校验证据：{e}" for e in item.support_evidence]
+        lines += [
             "",
             "## 待确认问题（写简历/面试前建议先回答）",
             "",

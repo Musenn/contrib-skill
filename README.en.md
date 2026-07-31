@@ -97,6 +97,7 @@ contrib-skill analyze \
   --until 2025-06-01 \
   --mode resume \
   --target-role "Backend Engineer (Java)" \
+  --project-context "An internal order system expected to support high availability and concurrency" \
   --output ./output
 
 # Analyze all authors (resume material defaults to the top committer)
@@ -117,6 +118,7 @@ contrib-skill analyze --repo ./project --author alice --strict
 | `--since` / `--until` | Date filters, e.g. `2025-01-01` |
 | `--mode` | `full` / `resume` / `interview` / `audit` / `strict` |
 | `--target-role` | Target job role; produces tailoring advice (and honest warnings when the stack doesn't match) |
+| `--project-context` | User-confirmed project nature/use case; used in the resume context and separately validated against repository evidence |
 | `--language` | `zh` / `en` (MVP reports and the paste-ready resume entry are primarily Chinese) |
 | `--output` | Output directory, defaults to `./contrib_output` |
 | `--max-commits` | Max commits to analyze, default 2000 |

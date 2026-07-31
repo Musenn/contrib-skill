@@ -1,4 +1,4 @@
 interface:
   display_name: "Contrib Skill"
   short_description: "将仓库上下文与 Git 证据转成丰富、可背调的简历项目描述"
-  default_prompt: "Use $contrib-skill to analyze this repository and draft a context-rich, evidence-backed resume project entry."
+  default_prompt: "Use $contrib-skill to analyze this repository, incorporate any project context I explicitly provide, validate strong background claims against repository evidence, and draft a high-level evidence-backed resume project entry."

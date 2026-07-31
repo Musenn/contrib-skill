@@ -71,6 +71,14 @@ class BusinessContextEvidence(BaseModel):
     evidence_sources: list[str] = Field(default_factory=list)
 
 
+class ProjectContextAssessment(BaseModel):
+    statement: str
+    source: str = "用户提供"
+    risk_level: str = RISK_NEEDS_CONFIRMATION
+    analysis: str = ""
+    support_evidence: list[str] = Field(default_factory=list)
+
+
 class ProjectEvidence(BaseModel):
     repo_path: str
     project_name: str

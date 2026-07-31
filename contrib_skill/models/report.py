@@ -8,6 +8,7 @@ from .evidence import (
     AuthorEvidence,
     BusinessContextEvidence,
     GitCommitEvidence,
+    ProjectContextAssessment,
     ProjectEvidence,
     ResumeClaim,
     TechStackEvidence,
@@ -23,4 +24,5 @@ class AnalysisResult(BaseModel):
     authors: list[AuthorEvidence] = Field(default_factory=list)
     target_author: str = ""
     resume_claims: list[ResumeClaim] = Field(default_factory=list)
+    project_context_assessments: list[ProjectContextAssessment] = Field(default_factory=list)
     analysis_params: dict = Field(default_factory=dict)

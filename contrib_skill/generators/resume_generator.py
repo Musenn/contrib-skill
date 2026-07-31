@@ -12,6 +12,7 @@ from ..models import (
     BusinessContextEvidence,
     GitCommitEvidence,
     ProjectEvidence,
+    ProjectContextAssessment,
     RISK_SAFE,
     ResumeClaim,
     TechStackEvidence,
@@ -59,6 +60,8 @@ def generate_resume(
     business: BusinessContextEvidence | None = None,
     architecture: ArchitectureEvidence | None = None,
     repository_commits: list[GitCommitEvidence] | None = None,
+    project_context: str = "",
+    context_assessments: list[ProjectContextAssessment] | None = None,
 ) -> dict:
     """Build a context-rich project entry, then keep evidence outside the paste area."""
     context_commits = repository_commits or author_commits
@@ -81,7 +84,7 @@ def generate_resume(
         "role": _resume_role(author_ev),
         "tech_stack": _tech_string(tech),
         "summary": _project_summary(
-            business, architecture, tech, context_commits
+            business, architecture, tech, context_commits, project_context
         ),
     }
 
@@ -91,10 +94,13 @@ def generate_resume(
         "project_entry": project_entry,
         "ready_bullets": ready_bullets,
         "project_context_evidence": _project_context_evidence(
-            business, architecture, tech, context_commits
+            business, architecture, tech, context_commits, project_context
         ),
+        "context_assessments": context_assessments or [],
         "confirmation_prompts": _confirmation_prompts(
-            [commit for group in selected_groups for commit in group], business
+            [commit for group in selected_groups for commit in group],
+            business,
+            project_context,
         ),
         "target_role_notes": _target_role_notes(target_role, tech),
         "metric_suggestions": METRIC_SUGGESTIONS,
@@ -195,37 +201,34 @@ def _claim_from_group(
     verb = _role_verb(author_ev, modules)
     topic = _topic_label(commits)
     layer = _layer_phrase(commits)
-    layer_prefix = f"在 {layer}" if layer else ""
 
     if commit.inferred_type == "architecture" or _looks_like_initialization(summary):
-        if _looks_like_initialization(summary):
-            action = "完成项目骨架、依赖与基础配置初始化"
-        else:
-            action = summary
+        project_scope = _project_scope_label(business)
         text = (
-            f"参与项目初始化与基础架构搭建，基于 {_architecture_tech_string(tech)} "
-            f"{action}，建立{_architecture_baseline(architecture)}开发基线。"
+            f"参与项目工程基线建设，基于 {_architecture_tech_string(tech)} "
+            "完成基础工程、依赖与运行配置整合，"
+            f"为{project_scope}相关能力的持续迭代提供统一基础。"
         )
     elif commit.inferred_type == "feature":
         text = (
-            f"{verb}{topic}核心功能开发，{layer_prefix}{summary}，"
+            f"{verb}{topic}核心能力建设，{_business_action(topic, summary)}，"
             f"{_feature_effect(topic, summary, layer)}。"
         )
     elif commit.inferred_type == "security":
         text = (
-            f"{verb}{topic}安全能力建设，{layer_prefix}{summary}，"
+            f"{verb}{topic}安全能力建设，{summary}，"
             "补强关键链路的认证、授权或数据保护边界。"
         )
     elif commit.inferred_type == "performance":
-        text = _performance_claim(summary, topic, layer, tech)
+        text = _performance_claim(summary, topic, tech)
     elif commit.inferred_type == "refactor":
         text = (
-            f"{verb}{topic}相关代码重构，{layer_prefix}{summary}，"
-            "梳理模块职责与调用边界，降低后续迭代的理解成本。"
+            f"{verb}{topic}相关能力重构，{summary}，"
+            "梳理职责边界与协作关系，降低后续迭代的理解成本。"
         )
     elif commit.inferred_type == "bugfix":
         text = (
-            f"参与{topic}链路稳定性治理，{layer_prefix}{summary}，"
+            f"参与{topic}链路稳定性治理，{summary}，"
             "完善异常路径与边界输入处理。"
         )
     elif commit.inferred_type == "test":
@@ -340,9 +343,9 @@ def _layer_phrase(commits: list[GitCommitEvidence]) -> str:
 def _feature_effect(topic: str, summary: str, layer: str) -> str:
     corpus = f"{topic} {summary}".lower()
     if "订单" in corpus and any(word in corpus for word in ("状态", "流转", "创建")):
-        return "覆盖订单创建、业务处理与状态演进流程"
+        return "形成覆盖订单创建、业务处理与状态演进的完整业务闭环"
     if "支付" in corpus and any(word in corpus for word in ("回调", "callback", "refund")):
-        return "补齐支付结果接收与业务处理链路"
+        return "完善支付结果接收与业务处理链路"
     if "用户" in corpus or "账号" in corpus:
         return "串联用户请求接入、身份处理与业务响应流程"
     if "认证" in corpus or "权限" in corpus:
@@ -353,17 +356,30 @@ def _feature_effect(topic: str, summary: str, layer: str) -> str:
         return "串联任务拆解、工具调用与结果处理流程"
     if "Controller" in layer and "Service" in layer:
         return "串联接口接入、业务处理与结果返回流程"
-    return "形成可独立讲清的功能闭环并沉淀对应实现"
+    return "形成可独立讲清的功能闭环"
+
+
+def _business_action(topic: str, summary: str) -> str:
+    corpus = summary.lower()
+    if "订单" in topic:
+        has_create = any(word in corpus for word in ("创建", "create"))
+        has_state = any(word in corpus for word in ("状态", "流转", "transition"))
+        if has_create and has_state:
+            return "实现订单创建与状态流转"
+        if has_create:
+            return "实现订单创建能力"
+    if "支付" in topic and any(word in corpus for word in ("回调", "callback")):
+        return "接入支付回调并处理支付结果"
+    action = re.sub(r"(?:新增|实现|接入)([^，。、；]+?)接口", r"建设\1能力", summary)
+    return action
 
 
 def _performance_claim(
     summary: str,
     topic: str,
-    layer: str,
     tech: TechStackEvidence,
 ) -> str:
     corpus = summary.lower()
-    layer_prefix = f"在 {layer}" if layer else ""
     cache_tech = next(
         (item for item in tech.middlewares if item.lower() in corpus),
         "Redis" if "redis" in corpus else "缓存",
@@ -375,12 +391,17 @@ def _performance_claim(
             summary,
             flags=re.IGNORECASE,
         ).strip(" ，,;；") or topic
+        scene = (
+            f"{subject}这一高频场景"
+            if any(word in subject for word in ("查询", "检索", "读取"))
+            else f"{subject}高频查询场景"
+        )
         return (
-            f"围绕{subject}链路开展性能优化，{layer_prefix}引入 {cache_tech} 缓存，"
-            "减少重复数据访问并优化高频查询路径。"
+            f"围绕{scene}引入 {cache_tech} 缓存机制，"
+            "减少重复数据访问，优化核心查询路径。"
         )
     return (
-        f"围绕{topic}关键链路开展性能优化，{layer_prefix}{summary}，"
+        f"围绕{topic}关键链路开展性能优化，{summary}，"
         "优化资源访问与核心处理路径。"
     )
 
@@ -430,11 +451,19 @@ def _project_subtitle(business: BusinessContextEvidence | None) -> str:
     return business.inferred_domain.split("（", 1)[0].strip()
 
 
+def _project_scope_label(business: BusinessContextEvidence | None) -> str:
+    subtitle = _project_subtitle(business)
+    if subtitle.startswith("开发者工具"):
+        return "Git 贡献分析与简历生成"
+    return subtitle
+
+
 def _project_summary(
     business: BusinessContextEvidence | None,
     architecture: ArchitectureEvidence | None,
     tech: TechStackEvidence,
     commits: list[GitCommitEvidence],
+    project_context: str = "",
 ) -> str:
     base = _clean_context_text(business.project_goal if business else "")
     if not base or "无 README" in base:
@@ -461,7 +490,10 @@ def _project_summary(
         context_parts.append(layer_context)
     context_parts.extend(_repository_mechanisms(commits, tech))
     second_sentence = "；".join(context_parts[:3])
-    summary = first_sentence
+    context_sentence = _user_context_sentence(project_context)
+    if context_sentence and first_sentence.startswith("一个"):
+        first_sentence = f"项目{first_sentence[2:]}"
+    summary = f"{context_sentence}{first_sentence}" if context_sentence else first_sentence
     if second_sentence:
         summary += f"{second_sentence}。"
     return summary[:320]
@@ -493,11 +525,10 @@ def _project_layer_context(architecture: ArchitectureEvidence | None) -> str:
     layers = " ".join(architecture.layer_analysis).lower()
     if "controller" in layers and "service" in layers:
         if any(word in layers for word in ("repository", "mapper", "dao")):
-            return "代码按 Controller/Service/Repository 分层组织接口、业务与数据访问职责"
-        return "代码按 Controller/Service 分层组织接口接入与业务逻辑"
+            return "采用接口接入、业务逻辑与数据访问职责分离的模块化设计"
+        return "采用接口接入与业务逻辑解耦的模块化设计"
     if architecture.layer_analysis:
-        names = [re.sub(r"\s*层.*", "", layer) for layer in architecture.layer_analysis[:3]]
-        return f"代码按 {'/'.join(names)} 分层组织核心职责"
+        return "按核心职责划分模块边界，保持功能组织与扩展路径清晰"
     return ""
 
 
@@ -525,8 +556,11 @@ def _project_context_evidence(
     architecture: ArchitectureEvidence | None,
     tech: TechStackEvidence,
     commits: list[GitCommitEvidence],
+    project_context: str = "",
 ) -> list[str]:
     evidence: list[str] = []
+    if project_context.strip():
+        evidence.append(f"用户提供背景：{' '.join(project_context.split())}")
     if business:
         evidence.extend(business.evidence_sources[:2])
         flow = _clean_context_text(business.core_business_flow)
@@ -558,6 +592,15 @@ def _architecture_baseline(architecture: ArchitectureEvidence | None) -> str:
     return "可持续迭代的"
 
 
+def _user_context_sentence(project_context: str) -> str:
+    text = " ".join(project_context.split()).strip()
+    if not text:
+        return ""
+    if text[-1] not in "。！？!?；;":
+        text += "。"
+    return text
+
+
 def _period(start: datetime | None, end: datetime | None) -> str:
     if not start and not end:
         return "时间待补充"
@@ -584,12 +627,17 @@ def _resume_role(author_ev: AuthorEvidence) -> str:
 def _confirmation_prompts(
     commits: list[GitCommitEvidence],
     business: BusinessContextEvidence | None,
+    project_context: str = "",
 ) -> list[str]:
     prompts = [
-        "确认项目性质与使用场景：真实上线、公司内部使用、开源项目，还是课程/练习项目。",
         "确认个人角色与团队边界：团队人数、本人负责范围，以及是否可使用“主导/主要负责”。",
         "补充真实规模：用户量、数据量、QPS、运行时长或 star；没有可靠数据就不要填写。",
     ]
+    if not project_context.strip():
+        prompts.insert(
+            0,
+            "确认项目性质与使用场景：真实上线、公司内部使用、开源项目，还是课程/练习项目。",
+        )
     types = {c.inferred_type for c in commits}
     if "performance" in types:
         prompts.append("如有压测或监控记录，补充性能优化前后的 P95/P99、吞吐量或资源消耗。")

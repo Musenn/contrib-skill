@@ -14,6 +14,7 @@ from .analyzers.business_context_analyzer import analyze_business_context
 from .analyzers.claim_risk_checker import module_ownership
 from .analyzers.diff_analyzer import classify_commit
 from .analyzers.git_analyzer import GitAnalyzer
+from .analyzers.project_context_validator import validate_project_context
 from .analyzers.repo_scanner import scan_repo
 from .analyzers.tech_stack_detector import detect_tech_stack
 from .config import AnalyzeOptions, LANGUAGES, MODES
@@ -46,6 +47,10 @@ def analyze(
     until: Optional[str] = typer.Option(None, "--until", help="截止日期，如 2025-06-01"),
     mode: str = typer.Option("full", "--mode", help=f"分析模式：{'/'.join(MODES)}"),
     target_role: str = typer.Option("", "--target-role", help="目标岗位，如 Java后端开发工程师"),
+    project_context: str = typer.Option(
+        "", "--project-context",
+        help="用户确认的项目性质/使用场景，如公司内部上线系统或开源项目；将写入简历并单独校验",
+    ),
     language: str = typer.Option("zh", "--language", help=f"输出语言：{'/'.join(LANGUAGES)}（MVP 报告以中文为主，简历含英文版）"),
     output: str = typer.Option("./contrib_output", "--output", help="输出目录"),
     max_commits: int = typer.Option(2000, "--max-commits", help="最大分析 commit 数"),
@@ -56,7 +61,8 @@ def analyze(
     opts = AnalyzeOptions(
         repo=repo, author=author, all_authors=all_authors, base=base,
         branch=branch, since=since, until=until, mode=mode,
-        target_role=target_role, language=language, output=output,
+        target_role=target_role, project_context=project_context,
+        language=language, output=output,
         max_commits=max_commits, include_diff=include_diff, strict=strict,
     )
     try:
@@ -92,6 +98,9 @@ def run_analysis(opts: AnalyzeOptions):
 
     # commit 语义分类
     commit_evidence = [classify_commit(c, opts.include_diff) for c in commits]
+    context_assessments = validate_project_context(
+        opts.project_context, arch, tech, commit_evidence
+    )
     evidence_by_hash = {e.hash: e for e in commit_evidence}
 
     # 作者聚合与画像
@@ -137,12 +146,14 @@ def run_analysis(opts: AnalyzeOptions):
         commits=commit_evidence,
         authors=authors,
         target_author=opts.author or "",
+        project_context_assessments=context_assessments,
         analysis_params={
             "base": opts.base, "branch": opts.branch,
             "since": opts.since, "until": opts.until,
             "mode": opts.normalized_mode(), "strict": opts.strict,
             "max_commits": opts.max_commits,
             "has_tests": bool(structure.test_dirs),
+            "project_context": opts.project_context,
         },
     )
 
@@ -154,6 +165,8 @@ def run_analysis(opts: AnalyzeOptions):
             target_role=opts.target_role, strict=opts.strict,
             project=project, business=biz, architecture=arch,
             repository_commits=commit_evidence,
+            project_context=opts.project_context,
+            context_assessments=context_assessments,
         )
         interview = generate_interview(result, target_ev, target_commits)
         result.resume_claims = resume["ready_bullets"]

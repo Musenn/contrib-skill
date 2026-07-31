@@ -97,6 +97,7 @@ contrib-skill analyze \
   --until 2025-06-01 \
   --mode resume \
   --target-role "Java后端开发工程师" \
+  --project-context "公司内部使用的订单系统，业务场景要求高可用、高并发" \
   --output ./output
 
 # 分析所有作者（简历材料默认生成给提交数最高的作者）
@@ -117,6 +118,7 @@ contrib-skill analyze --repo ./project --author alice --strict
 | `--since` / `--until` | 时间过滤，如 `2025-01-01` |
 | `--mode` | `full`（全部）/ `resume`（简历向）/ `interview`（面试向）/ `audit`（审计向）/ `strict` |
 | `--target-role` | 目标岗位，生成简历适配建议（技术栈不匹配时会如实提醒） |
+| `--project-context` | 用户确认的项目性质/使用场景；正文按此背景撰写，审计区会用仓库证据校验高可用、高并发、上线等强声明 |
 | `--language` | `zh` / `en`（MVP 报告与可粘贴简历主稿以中文为主） |
 | `--output` | 输出目录，默认 `./contrib_output` |
 | `--max-commits` | 最大分析 commit 数，默认 2000 |
@@ -140,7 +142,7 @@ contrib_output/
   full_report.md             # 汇总报告
 ```
 
-> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。`06_resume_bullets.md` 的第一部分是仓库上下文丰富版，可直接粘贴到简历；Git 证据与风险信息单独放在审计区。
+> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。示例显式提供了“公司内部使用、高可用、高并发”背景：正文按该背景撰写，审计区同时指出仓库缺少高可用/高并发的完整证据链。贡献序号保持业务与方案层表达，Git 文件与分层证据单独留在审计区。
 
 ## 风险分级
 

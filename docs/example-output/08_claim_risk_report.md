@@ -7,21 +7,46 @@
 
 ## 总览
 
-- 共评估表述：4 条
-- safe：4 条
-- needs_confirmation：0 条
-- risky：0 条
+- 个人贡献表述：4 条（safe 4 / needs_confirmation 0 / risky 0）
+- 项目背景声明：3 条（safe 0 / needs_confirmation 1 / risky 2）
+
+## 项目背景声明评估
+
+### 1. 项目性质/使用场景：公司内部使用的订单与支付系统，业务场景要求高可用、高并发
+
+- 来源：用户提供
+- 风险等级：**needs_confirmation**
+- 分析：按用户明确提供的背景写入项目简介；项目是否真实上线、内部使用、开源或课程实践通常无法仅凭代码仓库独立核验。
+- 校验证据：用户明确提供的项目背景
+
+### 2. 整体项目满足高可用要求
+
+- 来源：用户提供
+- 风险等级：**risky**
+- 分析：仓库证据不足以证明整体项目满足高可用要求；未形成可核验的冗余部署、故障转移、流量保护和可观测性证据链。
+- 校验证据：架构判断：MVC / Model-Service-Controller 倾向
+- 校验证据：部署识别：未识别
+
+### 3. 整体项目满足高并发要求
+
+- 来源：用户提供
+- 风险等级：**risky**
+- 分析：仓库证据不足以证明整体项目满足高并发要求；即使存在缓存或消息中间件，也缺少可核验的压测、吞吐量或线上监控数据。
+- 校验证据：中间件：Redis
+- 校验证据：发现缓存、异步或流量保护相关实现
+- 校验证据：压测/监控证据：未识别
+
 
 ## 逐条评估
 
-### 1. 参与项目初始化与基础架构搭建，基于 Express + MySQL + Redis 完成项目骨架、依赖与基础配置初始化，建立 Controller/Service 分层开发基线。
+### 1. 参与项目工程基线建设，基于 Express + MySQL + Redis 完成基础工程、依赖与运行配置整合，为电商订单与支付相关能力的持续迭代提供统一基础。
 
 - 风险等级：**safe**
 - 需要本人确认：否
 - 证据：
   - commit 2f052fd [architecture] init project scaffold；文件：.gitignore、README.md、package.json
 
-### 2. 参与订单核心功能开发，在 Controller 接口层、Service 业务层新增订单创建接口、实现订单状态流转，覆盖订单创建、业务处理与状态演进流程。
+### 2. 参与订单核心能力建设，实现订单创建与状态流转，形成覆盖订单创建、业务处理与状态演进的完整业务闭环。
 
 - 风险等级：**safe**
 - 需要本人确认：否
@@ -29,14 +54,14 @@
   - commit 1133c4f [feature] feat: 新增订单创建接口；文件：src/controller/order_controller.js、src/service/order_service.js
   - commit b8b8865 [feature] feat: 实现订单状态流转；文件：src/service/order_service.js
 
-### 3. 参与支付核心功能开发，在 Controller 接口层、Service 业务层接入支付回调，补齐支付结果接收与业务处理链路。
+### 3. 参与支付核心能力建设，接入支付回调并处理支付结果，完善支付结果接收与业务处理链路。
 
 - 风险等级：**safe**
 - 需要本人确认：否
 - 证据：
   - commit 171ec66 [feature] feat: 接入支付回调；文件：src/controller/payment_controller.js、src/service/payment_service.js
 
-### 4. 围绕订单查询链路开展性能优化，在 Service 业务层引入 Redis 缓存，减少重复数据访问并优化高频查询路径。
+### 4. 围绕订单查询这一高频场景引入 Redis 缓存机制，减少重复数据访问，优化核心查询路径。
 
 - 风险等级：**safe**
 - 需要本人确认：否
