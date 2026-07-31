@@ -20,7 +20,8 @@ Turn a local Git repository into context-rich resume and interview material with
 4. Open `06_resume_bullets.md` first.
    - Copy only “可直接粘贴的项目条目” into the resume.
    - Keep the project summary to one or two compact sentences: state the user/requirement context first, then the system boundary and evidence-backed architecture. Put the detailed technical substance in three or four numbered contributions.
-   - Make each numbered contribution cover at least three of these elements: owned object, architecture/technical approach, key mechanism, problem or capability, measured result. Prefer one coherent long sentence over several file-level sub-bullets.
+   - Start each numbered contribution with a short technical theme label, then enforce one causal sentence: problem/constraint → owned technical approach and key mechanism → evidence-backed result. Do not accept noun lists that fail to explain why the approach was used.
+   - Use a measured result only when a saved benchmark, monitoring export, test report, or user-supplied source supports it. Otherwise write an observable qualitative outcome and place scenario-specific metric suggestions outside the paste-ready body.
    - Keep numbered contributions at the business capability, technical approach, mechanism, and engineering-value level. Do not enumerate Controller/Service/Repository layers or file-level implementation details in the resume body.
    - Lead the project summary with user/requirement context: target users, operational scenario, and the problem to solve. Describe the stack only after the requirement.
    - Name DDD, MVC, Repository, Strategy, Factory, Adapter, Observer, or similar patterns only when directory names, changed files, commit semantics, or dependencies provide direct evidence.
@@ -44,6 +45,7 @@ Use this workflow only when the user explicitly asks for load/performance testin
 
 - Keep commit hashes, file paths, risk labels, and confirmation checklists outside the resume body.
 - Prefer business or technical outcomes over directory names and commit counts.
+- Treat information density as causal density: every technology name must connect to a concrete constraint and an outcome. Do not add DDD, design patterns, middleware, or adjectives merely to make a sentence sound advanced.
 - Keep the information ratio aligned with strong resumes: a short requirement-oriented summary and three or four technically dense numbered contributions. Do not let the summary become longer than the contribution body.
 - Enrich project context only from the README, detected dependencies, architecture layers, business-flow inference, commit semantics, and changed files.
 - Treat explicit user context as a separate evidence source: use it for background wording, label it as user-provided in the audit trail, and never present it as repository fact.

@@ -148,7 +148,7 @@ def generate_resume(
             project_context,
         ),
         "target_role_notes": _target_role_notes(target_role, tech),
-        "metric_suggestions": METRIC_SUGGESTIONS,
+        "metric_suggestions": _metric_suggestions(selected_groups, benchmark),
         "conservative": ready_bullets,
         "standard": ready_bullets,
         "enhanced": ready_bullets,
@@ -203,6 +203,61 @@ def _select_resume_groups(
         fallback = [c for c in commits if not c.is_merge]
         selected = [[c] for c in sorted(fallback, key=lambda c: c.date)[:max_items]]
     return selected
+
+
+def _metric_suggestions(
+    groups: list[list[GitCommitEvidence]],
+    benchmark: BenchmarkEvidence | None = None,
+) -> list[str]:
+    suggestions: list[str] = []
+    for group in groups:
+        commit_type = group[0].inferred_type
+        topic = _topic_label(group)
+        summary = " ".join(commit.message for commit in group).lower()
+        if commit_type == "performance":
+            suggestions.append(
+                "性能优化：缓存命中率、数据库查询次数、QPS、P95/P99 与资源消耗"
+            )
+        elif commit_type == "security":
+            suggestions.append(
+                "安全边界：未授权请求拦截数、误拦截率、安全事件数或审计覆盖范围"
+            )
+        elif commit_type == "test":
+            suggestions.append(
+                "质量保障：自动化用例数、测试覆盖率、缺陷回归率或发布前拦截缺陷数"
+            )
+        elif "订单" in topic:
+            suggestions.append(
+                "订单链路：状态流转成功率、异常状态数量、单日订单处理量或状态处理耗时"
+            )
+        elif "支付" in topic:
+            suggestions.append(
+                "支付链路：回调成功率、回调处理耗时、异常回调数量或重复回调比例"
+            )
+        elif "报告与简历生成" in topic:
+            if any(word in summary for word in ("benchmark", "pattern", "模式")):
+                suggestions.append(
+                    "证据生成：可识别模式数量、风险表述拦截数、报告生成耗时或规则覆盖率"
+                )
+            elif any(word in summary for word in ("context", "背景", "validate", "risk")):
+                suggestions.append(
+                    "背景校验：强声明识别数、风险表述拦截数、人工复核通过率或误报率"
+                )
+            else:
+                suggestions.append(
+                    "材料生成：可追溯贡献条目数、报告生成耗时、人工改写比例或支持的仓库规模"
+                )
+        elif commit_type in {"architecture", "ci", "config", "dependency", "build"}:
+            suggestions.append(
+                "工程效率：环境初始化耗时、构建耗时、部署成功率或新模块接入耗时"
+            )
+    if benchmark:
+        suggestions = [
+            item for item in suggestions
+            if not item.startswith("性能优化：")
+        ]
+    suggestions.extend(METRIC_SUGGESTIONS)
+    return list(dict.fromkeys(suggestions))[:8]
 
 
 def _benchmark_matches_group(
@@ -285,44 +340,65 @@ def _claim_from_group(
     if commit.inferred_type == "architecture" or _looks_like_initialization(summary):
         project_scope = _project_scope_label(business)
         architecture_verb = "负责" if author_ev.is_project_initializer else "参与"
-        text = (
-            f"{architecture_verb}项目工程基线建设，基于 {_architecture_tech_string(tech)} "
-            "完成工程初始化与依赖集成，统一依赖版本、仓库忽略规则和运行说明；"
-            f"为{project_scope}核心业务模块的后续开发提供一致的工程入口。"
+        text = _three_part_claim(
+            "项目持续开发中的依赖、运行约定与仓库规则一致性要求",
+            (
+                f"{architecture_verb}工程基线建设，基于 {_architecture_tech_string(tech)} "
+                "完成工程初始化与依赖集成，统一依赖版本、仓库忽略规则和运行说明"
+            ),
+            f"形成一致的工程入口，支撑{project_scope}核心业务模块持续扩展",
+            label="工程基线",
         )
     elif commit.inferred_type == "feature":
         technical_approach = _feature_technical_approach(
             tech, pattern_phrase, topic, summary
         )
-        text = (
-            f"{_feature_heading(verb, topic, summary)}，"
-            f"{technical_approach}{_business_action(topic, summary)}；"
-            f"{_feature_effect(topic, summary, layer)}。"
+        text = _three_part_claim(
+            _feature_problem(topic, summary),
+            (
+                f"{_feature_heading(verb, topic, summary)}，"
+                f"{technical_approach}{_business_action(topic, summary)}"
+            ),
+            _feature_effect(topic, summary, layer),
+            label=_feature_label(topic, summary),
         )
     elif commit.inferred_type == "security":
-        text = (
-            f"{verb}{topic}安全边界建设，围绕{summary}落地认证、授权或数据保护机制；"
-            "将安全校验纳入关键业务链路，收敛未授权访问与敏感数据暴露风险。"
+        text = _three_part_claim(
+            f"{topic}关键链路需要明确认证、授权与数据保护边界的安全约束",
+            (
+                f"{verb}{topic}安全边界建设，围绕{summary}落地认证、授权或数据保护机制"
+            ),
+            "将安全校验纳入关键业务链路，收敛未授权访问与敏感数据暴露风险",
+            label=f"{topic}安全边界",
         )
     elif commit.inferred_type == "performance":
         text = _performance_claim(summary, topic, tech, benchmark)
     elif commit.inferred_type == "refactor":
-        text = (
-            f"{verb}{topic}模块重构，围绕{summary}重新梳理职责边界与协作关系；"
-            "通过模块职责收敛降低跨模块耦合与后续迭代的理解成本。"
+        text = _three_part_claim(
+            f"{topic}后续扩展中职责边界与协作关系需要持续保持清晰的工程要求",
+            f"{verb}{topic}模块重构，围绕{summary}重新梳理职责边界与协作关系",
+            "收敛模块职责与跨模块依赖，为后续功能迭代提供清晰扩展路径",
+            label=f"{topic}模块重构",
         )
     elif commit.inferred_type == "bugfix":
         text = _bugfix_claim(summary, topic)
     elif commit.inferred_type == "test":
         test_tool = tech.test_tools[0] if tech.test_tools else "自动化测试"
-        text = (
-            f"围绕{topic}建立基于 {test_tool} 的自动化回归保障，覆盖{summary}涉及的"
-            "核心路径与边界场景；统一测试入口，为功能迭代和缺陷修复提供持续验证能力。"
+        text = _three_part_claim(
+            f"{topic}持续迭代缺少可重复验证核心路径与边界场景的质量风险",
+            (
+                f"基于 {test_tool} 建立自动化回归保障，覆盖{summary}涉及的"
+                "核心路径与边界场景"
+            ),
+            "形成统一测试入口，为功能迭代与缺陷修复提供持续验证能力",
+            label=f"{topic}质量保障",
         )
     elif commit.inferred_type in {"ci", "config", "dependency", "build"}:
-        text = (
-            f"完善项目工程化建设，{summary}，"
-            "统一依赖、构建与配置入口，降低环境准备和协作维护成本。"
+        text = _three_part_claim(
+            "多环境协作中依赖、构建与配置入口需要保持一致的工程要求",
+            f"完善项目工程化建设，落地{summary}并统一依赖、构建与配置入口",
+            "形成可复用的环境准备与交付路径，减少重复配置和协作维护成本",
+            label="工程化建设",
         )
     else:
         text = f"参与项目迭代与维护，{summary}。"
@@ -336,6 +412,62 @@ def _claim_from_group(
         evidence,
         has_benchmark_evidence=benchmark is not None,
     )
+
+
+def _three_part_claim(
+    problem: str,
+    solution: str,
+    result: str,
+    label: str = "",
+) -> str:
+    prefix = f"{label}：" if label else ""
+    return f"{prefix}针对{problem}，{solution}；{result}。"
+
+
+def _feature_problem(topic: str, summary: str) -> str:
+    corpus = summary.lower()
+    if "报告与简历生成" in topic:
+        if any(word in corpus for word in ("benchmark", "pattern", "模式")):
+            return "技术术语与量化指标容易脱离仓库和测试证据、导致简历表述不可追溯的问题"
+        if any(word in corpus for word in ("context", "背景", "validate", "risk")):
+            return "用户提供的上线、高可用或高并发背景无法仅凭代码仓库直接证实的问题"
+        return "Git 提交与目录信息难以直接转化为面试官可理解项目贡献的问题"
+    if "订单" in topic:
+        return "订单跨阶段状态需要统一生命周期承载与约束的问题"
+    if "支付" in topic:
+        return "外部支付结果需要接入系统并与内部业务处理衔接的问题"
+    if "用户" in topic or "账号" in topic:
+        return "用户请求、身份处理与业务响应需要形成连续处理链路的问题"
+    if "认证" in topic or "权限" in topic:
+        return "身份校验与权限控制需要在关键业务入口形成统一边界的问题"
+    if "合同" in topic or "文档" in topic:
+        return "文档从接入、内容处理到结果输出需要保持链路连续的问题"
+    if "智能体" in topic or "工作流" in topic:
+        return "复杂任务需要在拆解、工具调用与结果处理之间建立可控协作链路的问题"
+    return f"{topic}从请求接入到结果返回需要形成完整处理闭环的问题"
+
+
+def _feature_label(topic: str, summary: str) -> str:
+    corpus = summary.lower()
+    if "报告与简历生成" in topic:
+        if any(word in corpus for word in ("benchmark", "pattern", "模式")):
+            return "技术证据与量化结果"
+        if any(word in corpus for word in ("context", "背景", "validate", "risk")):
+            return "项目背景可信校验"
+        return "简历材料生成"
+    if "订单" in topic:
+        return "订单状态建模" if any(
+            word in corpus for word in ("状态", "流转", "transition")
+        ) else "订单核心链路"
+    if "支付" in topic:
+        return "支付回调链路" if any(
+            word in corpus for word in ("回调", "callback")
+        ) else "支付核心链路"
+    if "认证" in topic or "权限" in topic:
+        return "认证与权限边界"
+    if "智能体" in topic or "工作流" in topic:
+        return "Agent 工作流"
+    return topic.strip() or "核心能力"
 
 
 def _feature_technical_approach(
@@ -375,13 +507,17 @@ def _feature_heading(verb: str, topic: str, summary: str) -> str:
 def _bugfix_claim(summary: str, topic: str) -> str:
     corpus = summary.lower()
     if any(word in corpus for word in ("空指针", "null", "none", "nil")):
-        return (
-            f"参与{topic}链路稳定性治理，定位并修复{summary}；"
-            "通过空值校验与保护性处理完善异常输入路径，避免无效请求中断业务处理流程。"
+        return _three_part_claim(
+            f"{summary}使异常输入可能中断{topic}业务处理链路的问题",
+            f"参与{topic}稳定性治理，定位异常触发路径并引入空值校验与保护性处理",
+            "将无效请求隔离在异常处理路径，补齐关键链路的边界输入保护",
+            label=f"{topic}稳定性治理",
         )
-    return (
-        f"参与{topic}链路稳定性治理，定位并修复{summary}；"
-        "补充异常路径与边界输入处理，提升关键流程的可恢复性与维护确定性。"
+    return _three_part_claim(
+        f"{summary}暴露的{topic}稳定性与边界输入问题",
+        f"参与{topic}稳定性治理，定位根因并补充异常路径与边界输入处理",
+        "完善关键流程的异常隔离与恢复路径，提高后续维护的确定性",
+        label=f"{topic}稳定性治理",
     )
 
 
@@ -491,9 +627,9 @@ def _feature_effect(topic: str, summary: str, layer: str) -> str:
             return "在保留真实使用场景的同时，将证据不足的强声明隔离到审计区"
         return "形成从仓库证据采集、风险校验到可投递材料生成的处理闭环"
     if "订单" in corpus and any(word in corpus for word in ("状态", "流转", "创建")):
-        return "以状态驱动方式约束订单生命周期，覆盖订单创建、业务处理与状态演进等关键环节"
+        return "形成覆盖订单创建、业务处理与状态演进的业务闭环，为跨阶段状态变化提供统一承载入口"
     if "支付" in corpus and any(word in corpus for word in ("回调", "callback", "refund")):
-        return "打通回调接收、支付结果处理与业务响应流程"
+        return "形成回调接收、支付结果处理与业务响应闭环，为外部结果与内部业务衔接提供统一入口"
     if "用户" in corpus or "账号" in corpus:
         return "串联用户请求接入、身份处理与业务响应流程"
     if "认证" in corpus or "权限" in corpus:
@@ -519,11 +655,11 @@ def _business_action(topic: str, summary: str) -> str:
         has_create = any(word in corpus for word in ("创建", "create"))
         has_state = any(word in corpus for word in ("状态", "流转", "transition"))
         if has_create and has_state:
-            return "实现订单创建与状态流转"
+            return "实现订单创建与状态流转，并以状态驱动方式统一约束订单生命周期"
         if has_create:
             return "实现订单创建能力"
     if "支付" in topic and any(word in corpus for word in ("回调", "callback")):
-        return "接入支付回调并处理支付结果"
+        return "接入支付回调并统一处理返回结果"
     action = re.sub(r"(?:新增|实现|接入)([^，。、；]+?)接口", r"建设\1能力", summary)
     return action
 
@@ -584,32 +720,41 @@ def _performance_claim(
             if any(word in subject for word in ("查询", "检索", "读取"))
             else f"{subject}高频查询场景"
         )
-        text = (
-            f"围绕{scene}引入 {cache_tech} 缓存机制，"
-            f"将重复读取前移至缓存层，减少对 {_primary_database(tech)} 的重复访问，"
-            "收敛核心查询路径。"
+        result = (
+            f"减少对 {_primary_database(tech)} 的重复访问并收敛核心查询路径"
+        )
+        if benchmark:
+            result += f"；{_benchmark_result_clause(benchmark)}"
+        return _three_part_claim(
+            f"{scene}存在重复读取持久化数据、核心查询路径需要收敛的问题",
+            f"采用 {cache_tech} 缓存机制，将重复读取前移至缓存层",
+            result,
+            label="查询性能优化",
         )
     else:
-        text = (
-            f"围绕{topic}关键链路开展性能优化，落地{summary}；"
-            "梳理资源访问与核心处理路径，形成可持续验证的性能优化入口。"
+        result = "收敛资源访问与核心处理路径，形成可持续验证的性能优化入口"
+        if benchmark:
+            result += f"；{_benchmark_result_clause(benchmark)}"
+        return _three_part_claim(
+            f"{topic}关键链路的资源访问与处理效率需要持续优化的问题",
+            f"围绕核心路径落地{summary}并梳理资源访问关系",
+            result,
+            label=f"{topic}性能治理",
         )
-    return _append_benchmark_result(text, benchmark) if benchmark else text
 
 
 def _primary_database(tech: TechStackEvidence) -> str:
     return tech.databases[0] if tech.databases else "持久化存储"
 
 
-def _append_benchmark_result(text: str, benchmark: BenchmarkEvidence) -> str:
+def _benchmark_result_clause(benchmark: BenchmarkEvidence) -> str:
     environment = _environment_label(benchmark.environment)
-    base = text.rstrip("。")
     return (
-        f"{base}；针对{benchmark.scenario}，在{environment}环境编写并执行 HTTP 压测脚本，"
+        f"在{environment}环境针对{benchmark.scenario}编写并执行 HTTP 压测脚本，"
         f"以 {benchmark.concurrency} 并发完成 {benchmark.total_requests} 次请求，"
         f"实测成功率 {benchmark.success_rate:.2f}%、吞吐量 "
         f"{benchmark.requests_per_second:.2f} QPS、P95 延迟 "
-        f"{benchmark.latency_p95_ms:.2f} ms，形成可复核的性能基线。"
+        f"{benchmark.latency_p95_ms:.2f} ms，形成可复核性能基线"
     )
 
 
@@ -821,11 +966,20 @@ def _benchmark_star_claim(
     benchmark: BenchmarkEvidence,
     author_ev: AuthorEvidence,
 ) -> ResumeClaim:
-    star = _benchmark_star(benchmark)
-    text = (
-        f"针对{star['situation']}，承担{star['task']}任务；{star['action']}，"
-        f"{star['result']}，"
-        "为后续容量评估与性能优化提供可复核基线。"
+    environment = _environment_label(benchmark.environment)
+    text = _three_part_claim(
+        f"{benchmark.scenario}缺少可复核的响应稳定性与容量基线",
+        (
+            f"在{environment}环境承担接口吞吐、成功率与尾延迟验证，"
+            f"编写并执行 HTTP 压测脚本，以 {benchmark.concurrency} 并发"
+            f"完成 {benchmark.total_requests} 次请求"
+        ),
+        (
+            f"实测成功率 {benchmark.success_rate:.2f}%、吞吐量 "
+            f"{benchmark.requests_per_second:.2f} QPS、P95 延迟 "
+            f"{benchmark.latency_p95_ms:.2f} ms，为后续容量评估与性能优化建立量化基线"
+        ),
+        label="接口性能基线",
     )
     evidence = _benchmark_evidence(benchmark)
     return check_claim(

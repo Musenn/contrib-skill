@@ -6,6 +6,7 @@ from contrib_skill.generators.report_generator import ReportGenerator
 from contrib_skill.generators.resume_generator import (
     _claim_from_group,
     _feature_effect,
+    _metric_suggestions,
     _project_summary,
 )
 
@@ -39,12 +40,15 @@ def test_resume_entry_is_paste_ready(sample_repo):
 
     texts = [claim.text for claim in resume["ready_bullets"]]
     assert any(
-        "订单核心链路建设" in text
+        text.startswith("订单状态建模：针对订单跨阶段状态需要统一生命周期承载与约束的问题")
+        and "订单核心链路建设" in text
         and "基于 Express 组织请求接入与业务处理" in text
         and "实现订单创建与状态流转" in text
-        and "状态驱动方式约束订单生命周期" in text
+        and "以状态驱动方式统一约束订单生命周期" in text
+        and "形成覆盖订单创建、业务处理与状态演进的业务闭环" in text
         for text in texts
     )
+    assert all("：针对" in text and "；" in text for text in texts)
     assert all(len(text) >= 55 for text in texts)
     assert all("Controller" not in text for text in texts)
     assert all("Service" not in text for text in texts)
@@ -60,6 +64,10 @@ def test_resume_entry_is_paste_ready(sample_repo):
     )
     assert not unsupported_metrics.search(summary)
     assert all(not unsupported_metrics.search(text) for text in texts)
+    assert any(
+        item.startswith("订单链路：状态流转成功率")
+        for item in resume["metric_suggestions"]
+    )
 
 
 def test_project_summary_keeps_cache_mechanism_in_contribution(sample_repo):
@@ -108,11 +116,18 @@ def test_commit_context_enriches_personal_contributions(sample_repo):
         business=result.business,
         architecture=result.architecture,
     )
-    assert "接入支付回调并处理支付结果" in payment_claim.text
+    assert payment_claim.text.startswith(
+        "支付回调链路：针对外部支付结果需要接入系统并与内部业务处理衔接的问题"
+    )
+    assert "接入支付回调并统一处理返回结果" in payment_claim.text
     assert "基于 Express 组织请求接入与业务处理" in payment_claim.text
-    assert "回调接收、支付结果处理与业务响应流程" in payment_claim.text
+    assert "形成回调接收、支付结果处理与业务响应闭环" in payment_claim.text
     assert "Controller" not in payment_claim.text
     assert "Service" not in payment_claim.text
+    assert any(
+        item.startswith("支付链路：回调成功率")
+        for item in _metric_suggestions([[payment_commit]])
+    )
 
     cache_commit = source.model_copy(update={
         "message": "perf: 订单查询增加 redis 缓存",
@@ -125,11 +140,18 @@ def test_commit_context_enriches_personal_contributions(sample_repo):
         business=result.business,
         architecture=result.architecture,
     )
-    assert "引入 Redis 缓存机制" in cache_claim.text
+    assert cache_claim.text.startswith(
+        "查询性能优化：针对订单查询这一高频场景存在重复读取持久化数据"
+    )
+    assert "采用 Redis 缓存机制" in cache_claim.text
     assert "将重复读取前移至缓存层" in cache_claim.text
     assert "减少对 MySQL 的重复访问" in cache_claim.text
     assert "Service" not in cache_claim.text
     assert "查询高频查询" not in cache_claim.text
+    assert any(
+        item.startswith("性能优化：缓存命中率")
+        for item in _metric_suggestions([[cache_commit]])
+    )
 
 
 def test_user_context_is_used_but_validated_against_repository(sample_repo, tmp_path):
@@ -195,7 +217,10 @@ def test_commit_message_topic_outranks_generic_skill_path(sample_repo):
         architecture=result.architecture,
     )
 
-    assert "报告与简历生成链路稳定性治理" in claim.text
+    assert claim.text.startswith("报告与简历生成稳定性治理：针对")
+    assert "修复报告渲染与措辞问题暴露的报告与简历生成稳定性" in claim.text
+    assert "参与报告与简历生成稳定性治理" in claim.text
+    assert "异常隔离与恢复路径" in claim.text
     assert "智能体工作流" not in claim.text
     assert "Agent" not in claim.text
 

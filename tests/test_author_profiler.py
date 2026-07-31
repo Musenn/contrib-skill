@@ -33,6 +33,21 @@ def test_diff_classification(sample_repo):
     assert types["docs: update readme"] == "docs"
 
 
+def test_generate_message_outranks_dependency_path(sample_repo):
+    source = GitAnalyzer(sample_repo).collect_commits()[0]
+    commit = source.model_copy(
+        update={
+            "message": "Generate requirement-driven resumes with verified patterns",
+            "changed_files": [
+                "contrib_skill/generators/resume_generator.py",
+                "pyproject.toml",
+            ],
+        }
+    )
+
+    assert classify_commit(commit).inferred_type == "feature"
+
+
 def test_alice_profile(sample_repo):
     profiles, _ = _profiles(sample_repo)
     alice = profiles["alice@example.com"]

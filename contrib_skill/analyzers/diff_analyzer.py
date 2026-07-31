@@ -31,8 +31,8 @@ _MESSAGE_RULES: list[tuple[str, list[str]]] = [
     ("style", ["style", "format", "lint", "格式化", "样式调整"]),
     ("architecture", ["architecture", "架构", "脚手架", "初始化项目", "init project",
                       "scaffold", "搭建框架"]),
-    ("feature", ["feat", "add", "create", "implement", "新增", "实现", "支持",
-                 "完成", "开发", "接入"]),
+    ("feature", ["feat", "add", "create", "implement", "generate", "generation",
+                 "新增", "实现", "支持", "完成", "开发", "接入"]),
 ]
 
 # 文件路径关键词规则

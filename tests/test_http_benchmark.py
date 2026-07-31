@@ -101,8 +101,8 @@ def test_benchmark_report_enables_safe_star_metric_claim(
     assert resume is not None
     claim = resume["ready_bullets"][-1]
     assert claim.risk_level == "safe"
-    assert "订单查询接口在并发访问下缺乏可复核的响应稳定性与容量基线" in claim.text
-    assert "承担在测试环境验证接口吞吐、成功率与尾延迟任务" in claim.text
+    assert claim.text.startswith("接口性能基线：针对订单查询接口缺少可复核的响应稳定性与容量基线")
+    assert "在测试环境承担接口吞吐、成功率与尾延迟验证" in claim.text
     assert "20 次请求" in claim.text
     assert "100.00%" in claim.text
     assert "QPS" in claim.text
@@ -161,8 +161,9 @@ def test_benchmark_metrics_merge_into_related_performance_contribution(
     ]
     assert len(performance_claims) == 1
     claim = performance_claims[0]
+    assert claim.text.startswith("查询性能优化：针对")
     assert "减少对 MySQL 的重复访问" in claim.text
-    assert "在测试环境编写并执行 HTTP 压测脚本" in claim.text
+    assert "在测试环境针对订单查询接口编写并执行 HTTP 压测脚本" in claim.text
     assert "20 次请求" in claim.text
     assert "QPS" in claim.text
     assert "P95 延迟" in claim.text
