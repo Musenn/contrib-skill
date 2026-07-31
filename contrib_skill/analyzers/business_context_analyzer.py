@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from ..models import (
@@ -17,6 +18,8 @@ from ..utils.file_utils import safe_read_text
 from .repo_scanner import RepoStructure
 
 _DOMAIN_KEYWORDS: list[tuple[str, list[str]]] = [
+    ("开发者工具/Git 分析", ["git", "commit", "repository", "contribution",
+                         "贡献", "仓库", "代码分析", "简历", "developer tool"]),
     ("电商/订单交易", ["order", "cart", "sku", "spu", "goods", "product", "订单",
                     "商品", "购物车", "下单", "库存", "inventory"]),
     ("支付", ["payment", "pay", "refund", "支付", "退款", "回调", "账单", "billing"]),
@@ -63,9 +66,12 @@ def analyze_business_context(
         readme_text = safe_read_text(root / structure.readme_path, max_chars=8000)
         ev.evidence_sources.append(f"README: {structure.readme_path}")
 
+    # Use the opening description rather than the entire README. Long READMEs
+    # often contain tutorials or demo domains unrelated to the product itself.
+    readme_intro = _first_paragraph(readme_text)
     corpus_parts = [
         project_name,
-        readme_text,
+        readme_intro,
         " ".join(structure.module_paths),
         " ".join(c.message for c in commits[:300]),
         " ".join(f for c in commits[:300] for f in c.changed_files[:20]),
@@ -118,7 +124,13 @@ def _first_paragraph(text: str) -> str:
     lines: list[str] = []
     for line in text.splitlines():
         s = line.strip()
-        if s.startswith("#") or s.startswith("!["):
+        if (
+            s.startswith("#")
+            or s.startswith("![")
+            or re.fullmatch(r"</?(?:p|div|picture)[^>]*>", s, re.IGNORECASE)
+            or re.fullmatch(r"<(?:img|a)\b[^>]*>.*", s, re.IGNORECASE)
+            or ("href=" in s.lower() and "readme" in s.lower())
+        ):
             continue
         if not s:
             if lines:
@@ -131,6 +143,13 @@ def _first_paragraph(text: str) -> str:
 
 
 def _infer_flow(corpus: str) -> str:
+    developer_tool = (
+        any(word in corpus for word in ("git", "commit", "仓库", "repository"))
+        and any(word in corpus for word in ("resume", "简历", "contribution", "贡献"))
+    )
+    if developer_tool:
+        return "推断：Git 提交与仓库结构解析 → 个人贡献与风险分析 → 简历与面试材料生成"
+
     flows = []
     if "login" in corpus or "登录" in corpus:
         flows.append("用户登录/鉴权")

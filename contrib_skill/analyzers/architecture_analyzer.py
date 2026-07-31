@@ -7,6 +7,7 @@ from ..models import (
     CONFIDENCE_LOW,
     CONFIDENCE_MEDIUM,
     TechStackEvidence,
+    Commit,
 )
 from .repo_scanner import RepoStructure
 
@@ -31,11 +32,19 @@ _LAYER_HINTS = {
 
 
 def analyze_architecture(
-    structure: RepoStructure, tech: TechStackEvidence
+    structure: RepoStructure,
+    tech: TechStackEvidence,
+    commits: list[Commit] | None = None,
 ) -> ArchitectureEvidence:
     ev = ArchitectureEvidence()
     all_paths = structure.module_paths + structure.key_dirs
     path_text = " ".join(p.lower() for p in all_paths)
+    historical_paths = [
+        path.replace("\\", "/").lower()
+        for commit in (commits or [])
+        for path in commit.changed_files
+    ]
+    pattern_paths = [p.replace("\\", "/").lower() for p in all_paths] + historical_paths
 
     # 分层识别
     layers_found: list[str] = []
@@ -63,13 +72,22 @@ def analyze_architecture(
         styles.append("前后端分离")
     elif "前后端分离" in tech.possible_architecture_style:
         styles.append("前后端分离（依赖层面推断）")
-    if {"Controller 层（接口/路由）", "Service 层（业务逻辑）"} & set(layers_found):
+    layer_set = set(layers_found)
+    has_controller = "Controller 层（接口/路由）" in layer_set
+    has_service = "Service 层（业务逻辑）" in layer_set
+    has_model = any(name in layer_set for name in ("Model 层（数据模型）", "Entity 层（实体）"))
+    if has_controller and has_service:
         if any("数据访问" in l for l in layers_found):
             styles.append("经典分层架构（Controller-Service-DAO/Repository）")
+        elif has_model:
+            styles.append("MVC / Model-Service-Controller 架构")
         else:
-            styles.append("MVC / Model-Service-Controller 倾向")
-    if "Domain 层（领域模型）" in layers_found:
-        styles.append("存在 DDD 倾向（出现 domain 目录，需结合代码确认）")
+            styles.append("Controller-Service 分层架构")
+    elif has_controller and has_model:
+        styles.append("MVC 架构")
+    ev.design_patterns, ev.pattern_evidence = _detect_design_patterns(pattern_paths)
+    if "DDD 领域驱动设计" in ev.design_patterns:
+        styles.append("DDD 分层架构（领域模型与配套分层证据）")
     if not styles:
         if structure.dependency_files:
             styles.append("单体应用（未发现服务拆分迹象）")
@@ -117,3 +135,42 @@ def analyze_architecture(
         ev.confidence = CONFIDENCE_LOW
         ev.architecture_style = "无法从代码中确定完整架构"
     return ev
+
+
+def _detect_design_patterns(paths: list[str]) -> tuple[list[str], dict[str, list[str]]]:
+    corpus = " ".join(paths)
+    patterns: list[str] = []
+    evidence: dict[str, list[str]] = {}
+
+    def add(name: str, hints: tuple[str, ...]) -> None:
+        hits = [path for path in paths if any(hint in path for hint in hints)]
+        if hits:
+            patterns.append(name)
+            evidence[name] = list(dict.fromkeys(hits))[:5]
+
+    if "controller" in corpus and "service" in corpus:
+        add("分层架构", ("controller", "service"))
+    if "controller" in corpus and any(word in corpus for word in ("/model/", "/entity/", "model/", "entity/")):
+        add("MVC 架构", ("controller", "/model/", "/entity/", "model/", "entity/"))
+    has_domain = any(part in corpus for part in ("/domain/", "domain/", "/domain"))
+    has_ddd_companion = any(
+        part in corpus for part in ("repository", "entity", "aggregate", "application", "infrastructure")
+    )
+    if has_domain and has_ddd_companion:
+        add("DDD 领域驱动设计", ("domain", "repository", "entity", "aggregate", "application", "infrastructure"))
+
+    rules = (
+        ("Repository 模式", ("repository",)),
+        ("DAO 模式", ("/dao/",)),
+        ("Data Mapper 模式", ("mapper",)),
+        ("策略模式", ("strategy", "策略")),
+        ("工厂模式", ("factory", "工厂")),
+        ("适配器模式", ("adapter", "适配器")),
+        ("观察者模式", ("observer", "listener", "观察者")),
+        ("责任链模式", ("handler_chain", "chain_of_responsibility", "责任链")),
+        ("命令模式", ("command", "命令模式")),
+        ("模板方法模式", ("template_method", "template-method", "模板方法")),
+    )
+    for name, hints in rules:
+        add(name, hints)
+    return list(dict.fromkeys(patterns)), evidence

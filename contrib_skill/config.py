@@ -19,6 +19,8 @@ class AnalyzeOptions(BaseModel):
     until: Optional[str] = None
     mode: str = "full"
     target_role: str = ""
+    project_context: str = ""
+    benchmark_report: Optional[str] = None
     language: str = "zh"
     output: str = "./contrib_output"
     max_commits: int = 2000

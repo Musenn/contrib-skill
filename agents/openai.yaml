@@ -1,0 +1,4 @@
+interface:
+  display_name: "Contrib Skill"
+  short_description: "生成需求驱动、技术具体、可选实测 STAR 的可信简历项目描述"
+  default_prompt: "Use $contrib-skill to analyze this repository, lead with requirement context, name only evidence-backed architecture/design patterns, and if I explicitly request benchmarking, run it safely and use the measured report for a STAR resume result."

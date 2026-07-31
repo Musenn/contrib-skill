@@ -79,6 +79,9 @@ class ReportGenerator:
         if "risk" in sections_wanted:
             bodies["risk"] = self.env.get_template("risk.md.j2").render(
                 claims=[c.model_dump() for c in result.resume_claims],
+                context_assessments=[
+                    item.model_dump() for item in result.project_context_assessments
+                ],
             )
             written.append(self._write_md("08_claim_risk_report.md", bodies["risk"]))
 
@@ -167,6 +170,35 @@ class ReportGenerator:
             f"- **目标用户**：{b.target_users}",
             f"- **核心业务流程**：{b.core_business_flow}",
             f"- **证据来源**：{'；'.join(b.evidence_sources) or '无'}",
+        ]
+        if result.benchmark:
+            bm = result.benchmark
+            lines += [
+                "",
+                "## 压测证据（实测）",
+                "",
+                f"- **测试场景**：{bm.scenario}",
+                f"- **测试环境**：{bm.environment}",
+                f"- **配置**：{bm.total_requests} 次请求 / {bm.concurrency} 并发",
+                f"- **结果**：成功率 {bm.success_rate:.2f}% / "
+                f"{bm.requests_per_second:.2f} QPS / P95 {bm.latency_p95_ms:.2f} ms",
+                f"- **报告文件**：{bm.source_file}",
+            ]
+        if result.project_context_assessments:
+            lines += [
+                "",
+                "## 用户提供背景与仓库校验",
+                "",
+            ]
+            for item in result.project_context_assessments:
+                lines += [
+                    f"- **声明**：{item.statement}",
+                    f"  - 来源：{item.source}",
+                    f"  - 风险等级：`{item.risk_level}`",
+                    f"  - 分析：{item.analysis}",
+                ]
+                lines += [f"  - 校验证据：{e}" for e in item.support_evidence]
+        lines += [
             "",
             "## 待确认问题（写简历/面试前建议先回答）",
             "",
@@ -203,6 +235,13 @@ class ReportGenerator:
             lines.append("- 无")
         lines += ["", "## 依赖观察", ""]
         lines += [f"- {o}" for o in a.dependency_observations]
+        lines += ["", "## 架构与设计模式（仅列证据命中项）", ""]
+        if a.design_patterns:
+            for pattern in a.design_patterns:
+                paths = "、".join(a.pattern_evidence.get(pattern, [])[:4])
+                lines.append(f"- **{pattern}**：{paths or '仓库路径/提交语义命中'}")
+        else:
+            lines.append("- 未识别出可可靠命名的设计模式")
         lines += ["", "## 架构优势（基于可见证据）", ""]
         lines += [f"- {s}" for s in a.architecture_strengths] or ["- 证据不足"]
         lines += ["", "## 架构风险", ""]

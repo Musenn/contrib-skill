@@ -7,10 +7,24 @@
 
 ## 总览
 
-- 共评估表述：{{ claims | length }} 条
-- safe：{{ claims | selectattr("risk_level", "equalto", "safe") | list | length }} 条
-- needs_confirmation：{{ claims | selectattr("risk_level", "equalto", "needs_confirmation") | list | length }} 条
-- risky：{{ claims | selectattr("risk_level", "equalto", "risky") | list | length }} 条
+- 个人贡献表述：{{ claims | length }} 条（safe {{ claims | selectattr("risk_level", "equalto", "safe") | list | length }} / needs_confirmation {{ claims | selectattr("risk_level", "equalto", "needs_confirmation") | list | length }} / risky {{ claims | selectattr("risk_level", "equalto", "risky") | list | length }}）
+- 项目背景声明：{{ context_assessments | length }} 条（safe {{ context_assessments | selectattr("risk_level", "equalto", "safe") | list | length }} / needs_confirmation {{ context_assessments | selectattr("risk_level", "equalto", "needs_confirmation") | list | length }} / risky {{ context_assessments | selectattr("risk_level", "equalto", "risky") | list | length }}）
+
+{% if context_assessments %}
+## 项目背景声明评估
+
+{% for item in context_assessments %}
+### {{ loop.index }}. {{ item.statement }}
+
+- 来源：{{ item.source }}
+- 风险等级：**{{ item.risk_level }}**
+- 分析：{{ item.analysis }}
+{% for evidence in item.support_evidence %}
+- 校验证据：{{ evidence }}
+{% endfor %}
+
+{% endfor %}
+{% endif %}
 
 ## 逐条评估
 

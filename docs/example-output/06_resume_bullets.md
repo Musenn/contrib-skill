@@ -1,88 +1,96 @@
-# 简历表述建议（Alice Zhang）
+# 简历项目描述（Alice Zhang）
+> 正文采用用户明确提供的项目背景，个人贡献只收录有 Git 证据的表述。复制前请查看后面的背景校验；不要把审计信息与待确认清单粘贴到简历。
 
-> 每条表述均附风险等级与 Git 证据。`safe` 可直接使用；`needs_confirmation` 须本人确认后使用；`risky` 不建议使用。
+## 可直接粘贴的项目条目
 
-## 一、保守真实版（最稳妥，适合背调严格的公司）
+### contrib_demo_repo — 电商订单与支付
 
-- 参与 service 模块的开发与维护，工作包括 功能开发（3 次提交）、性能相关改动（1 次提交）
-    - 风险等级：safe
-    - 证据：commit 0a8f8b6（performance）：src/service/order_service.js
-    - 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-    - 证据：commit b8b8865（feature）：src/service/order_service.js
-    - 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
-- 参与 controller 模块的开发与维护，工作包括 功能开发（2 次提交）
-    - 风险等级：safe
-    - 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-    - 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
+**参与时间**：2025.01 — 2025.03
 
-## 二、标准求职版（按模块归属等级用词）
+**个人角色**：项目初始化与核心功能开发
 
-- 深度参与 service 模块，基于 Express、MySQL、Redis，工作包括 功能开发（3 次提交）、性能相关改动（1 次提交）
-    - 风险等级：safe
-    - 证据：commit 0a8f8b6（performance）：src/service/order_service.js
-    - 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-    - 证据：commit b8b8865（feature）：src/service/order_service.js
-    - 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
-- 参与 controller 模块，基于 Express、MySQL、Redis，工作包括 功能开发（2 次提交）
-    - 风险等级：safe
-    - 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-    - 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
+**技术栈**：JavaScript · Express · MySQL · Redis · npm/yarn/pnpm · Jest
 
-## 三、强化表达版（仅在证据允许的范围内加强）
+**项目简介**：公司内部使用的订单与支付系统，业务场景要求高可用、高并发；面向电商交易中的订单处理与支付结果衔接需求，项目聚焦订单状态流转和支付回调处理，并兼顾高频查询效率。基于 Express、MySQL、Redis 构建电商订单与支付核心链路，采用分层架构，组织核心模块与扩展边界。
 
-- 深度参与 service 模块开发，基于 Express、MySQL、Redis，工作包括 功能开发（3 次提交）、性能相关改动（1 次提交）
-    - 风险等级：safe
-    - 证据：commit 0a8f8b6（performance）：src/service/order_service.js
-    - 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-    - 证据：commit b8b8865（feature）：src/service/order_service.js
-    - 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
-- 参与 controller 模块，基于 Express、MySQL、Redis，工作包括 功能开发（2 次提交）
-    - 风险等级：safe
-    - 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-    - 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
+1. 负责项目工程基线建设，基于 Express + MySQL + Redis 完成工程初始化与依赖集成，统一依赖版本、仓库忽略规则和运行说明；为电商订单与支付核心业务模块的后续开发提供一致的工程入口。
+2. 参与订单核心链路建设，基于 Express 组织请求接入与业务处理，实现订单创建与状态流转；以状态驱动方式约束订单生命周期，覆盖订单创建、业务处理与状态演进等关键环节。
+3. 参与支付核心链路建设，基于 Express 组织请求接入与业务处理，接入支付回调并处理支付结果；打通回调接收、支付结果处理与业务响应流程。
+4. 围绕订单查询这一高频场景引入 Redis 缓存机制，将重复读取前移至缓存层，减少对 MySQL 的重复访问，收敛核心查询路径。
 
-## 四、STAR 版
+## 证据映射（不要粘贴到简历）
 
-### service 模块
+### 项目简介上下文
 
-- **Situation**：项目需要 service 模块支撑相关业务能力（背景细节建议结合实际补充）
-- **Task**：深度参与该模块的开发任务
-- **Action**：基于 Express、MySQL、Redis 完成相关提交，代表性工作：feat: 接入支付回调；feat: 实现订单状态流转
-- **Result**：模块按提交记录持续演进并合入主干；量化效果需补充真实指标
-- 证据：commit 0a8f8b6（performance）：src/service/order_service.js
-- 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-- 证据：commit b8b8865（feature）：src/service/order_service.js
-- 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
+- 证据：用户提供背景：公司内部使用的订单与支付系统，业务场景要求高可用、高并发
+- 证据：README: README.md
+- 证据：领域关键词命中：payment, pay, 支付, 回调
+- 证据：业务流程（仓库语义推断）：订单创建与状态流转 → 支付与回调处理
+- 证据：目录分层：Controller 层（接口/路由）、Service 层（业务逻辑）
+- 证据：架构/设计模式：分层架构
+- 证据：依赖文件：package.json → JavaScript · Express · MySQL · Redis · npm/yarn/pnpm · Jest
+- 证据：技术机制：commit 0a8f8b6 perf: 订单查询增加 redis 缓存
 
-### controller 模块
+### 用户提供背景与仓库校验
 
-- **Situation**：项目需要 controller 模块支撑相关业务能力（背景细节建议结合实际补充）
-- **Task**：参与该模块的开发任务
-- **Action**：基于 Express、MySQL、Redis 完成相关提交，代表性工作：feat: 接入支付回调；feat: 新增订单创建接口
-- **Result**：模块按提交记录持续演进并合入主干；量化效果需补充真实指标
-- 证据：commit 171ec66（feature）：src/controller/payment_controller.js, src/service/payment_service.js
-- 证据：commit 1133c4f（feature）：src/controller/order_controller.js, src/service/order_service.js
+- **声明**：项目性质/使用场景：公司内部使用的订单与支付系统，业务场景要求高可用、高并发
+  - 来源：用户提供
+  - 风险等级：`needs_confirmation`
+  - 分析：按用户明确提供的背景写入项目简介；项目是否真实上线、内部使用、开源或课程实践通常无法仅凭代码仓库独立核验。
+  - 校验证据：用户明确提供的项目背景
+- **声明**：整体项目满足高可用要求
+  - 来源：用户提供
+  - 风险等级：`risky`
+  - 分析：仓库证据不足以证明整体项目满足高可用要求；未形成可核验的冗余部署、故障转移、流量保护和可观测性证据链。
+  - 校验证据：架构判断：Controller-Service 分层架构
+  - 校验证据：部署识别：未识别
+- **声明**：整体项目满足高并发要求
+  - 来源：用户提供
+  - 风险等级：`risky`
+  - 分析：仓库证据不足以证明整体项目满足高并发要求；即使存在缓存或消息中间件，也缺少可核验的压测、吞吐量或线上监控数据。
+  - 校验证据：中间件：Redis
+  - 校验证据：发现缓存、异步或流量保护相关实现
+  - 校验证据：压测/监控证据：未识别
 
 
-## 五、英文版（English）
+### 1. 负责项目工程基线建设，基于 Express + MySQL + Redis 完成工程初始化与依赖集成，统一依赖版本、仓库忽略规则和运行说明；为电商订单与支付核心业务模块的后续开发提供一致的工程入口。
 
-- Was deeply involved in the service module (Express, MySQL, Redis); work covered feature (3 commits), performance (1 commits).
-    - Risk level: safe
-- Contributed to the controller module (Express, MySQL, Redis); work covered feature (2 commits).
-    - Risk level: safe
+- 风险等级：`safe`
+- 证据：commit 2f052fd [architecture] init project scaffold；文件：.gitignore、README.md、package.json
 
-## 六、目标岗位适配建议
+### 2. 参与订单核心链路建设，基于 Express 组织请求接入与业务处理，实现订单创建与状态流转；以状态驱动方式约束订单生命周期，覆盖订单创建、业务处理与状态演进等关键环节。
 
-- 面向「Java后端开发工程师」：建议在简历中突出 MySQL, Redis 相关经验（仓库依赖中确有这些技术）
+- 风险等级：`safe`
+- 证据：commit 1133c4f [feature] feat: 新增订单创建接口；文件：src/controller/order_controller.js、src/service/order_service.js
+- 证据：commit b8b8865 [feature] feat: 实现订单状态流转；文件：src/service/order_service.js
 
-## 七、可补充指标建议
+### 3. 参与支付核心链路建设，基于 Express 组织请求接入与业务处理，接入支付回调并处理支付结果；打通回调接收、支付结果处理与业务响应流程。
 
-以下指标**仓库中没有证据**，只有你能提供真实数据后才可写入简历：
+- 风险等级：`safe`
+- 证据：commit 171ec66 [feature] feat: 接入支付回调；文件：src/controller/payment_controller.js、src/service/payment_service.js
 
-1. 接口响应时间变化（需有压测或监控数据）
-2. bug 数量 / 故障率下降情况
-3. 测试覆盖率提升幅度
-4. 用户量 / 数据量级
-5. QPS / 并发量（需有压测记录）
-6. 部署环境（测试 / 预发 / 生产）
-7. 线上使用情况与运行时长
+### 4. 围绕订单查询这一高频场景引入 Redis 缓存机制，将重复读取前移至缓存层，减少对 MySQL 的重复访问，收敛核心查询路径。
+
+- 风险等级：`safe`
+- 证据：commit 0a8f8b6 [performance] perf: 订单查询增加 redis 缓存；文件：src/service/order_service.js
+
+
+## 待本人确认后补强
+
+- [ ] 确认个人角色与团队边界：团队人数、本人负责范围，以及是否可使用“主导/主要负责”。
+- [ ] 补充真实规模：用户量、数据量、QPS、运行时长或 star；没有可靠数据就不要填写。
+- [ ] 如有压测或监控记录，补充性能优化前后的 P95/P99、吞吐量或资源消耗。
+
+## 目标岗位适配
+
+- 面向「Java后端开发工程师」：优先保留 MySQL, Redis 相关成果，并在面试中准备对应的设计取舍与问题排查过程。
+
+## 可补充的真实指标
+
+以下指标只有在本人能提供可靠来源时才能加入正文：
+
+- 接口响应时间 / P95 / P99（需压测或监控数据）
+- 吞吐量、QPS 或批处理耗时（需压测记录）
+- 故障率、超时率或缺陷数量变化
+- 测试覆盖率与自动化用例数量
+- 真实用户量、数据量级与线上运行时长

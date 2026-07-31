@@ -57,7 +57,30 @@ class ArchitectureEvidence(BaseModel):
     dependency_observations: list[str] = Field(default_factory=list)
     architecture_strengths: list[str] = Field(default_factory=list)
     architecture_risks: list[str] = Field(default_factory=list)
+    design_patterns: list[str] = Field(default_factory=list)
+    pattern_evidence: dict[str, list[str]] = Field(default_factory=dict)
     confidence: str = CONFIDENCE_LOW
+
+
+class BenchmarkEvidence(BaseModel):
+    schema_version: int = 1
+    tool: str = ""
+    scenario: str = "HTTP 接口"
+    target: str = ""
+    environment: str = "local"
+    generated_at: str = ""
+    total_requests: int = 0
+    concurrency: int = 0
+    duration_seconds: float = 0.0
+    successful_requests: int = 0
+    failed_requests: int = 0
+    success_rate: float = 0.0
+    requests_per_second: float = 0.0
+    latency_avg_ms: float = 0.0
+    latency_p50_ms: float = 0.0
+    latency_p95_ms: float = 0.0
+    latency_p99_ms: float = 0.0
+    source_file: str = ""
 
 
 class BusinessContextEvidence(BaseModel):
@@ -69,6 +92,14 @@ class BusinessContextEvidence(BaseModel):
     confidence: str = CONFIDENCE_LOW
     missing_information_questions: list[str] = Field(default_factory=list)
     evidence_sources: list[str] = Field(default_factory=list)
+
+
+class ProjectContextAssessment(BaseModel):
+    statement: str
+    source: str = "用户提供"
+    risk_level: str = RISK_NEEDS_CONFIRMATION
+    analysis: str = ""
+    support_evidence: list[str] = Field(default_factory=list)
 
 
 class ProjectEvidence(BaseModel):

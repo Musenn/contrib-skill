@@ -27,6 +27,8 @@ It is not a commit counter, and it is not a resume fabricator. It digs out the w
 ## Core principles
 
 - **Evidence chain first**: every conclusion is grounded in Git evidence and strictly labeled as *fact*, *high-confidence inference*, or *low-confidence assumption*, with an explicit confidence level (high/medium/low)
+- **Repository-context enrichment**: combines the README, core flows, architecture layers, detected stack, commit semantics, and changed files into complete context → approach → action → technical-effect narratives
+- **Balanced information density**: keeps the project summary to one or two requirement-oriented sentences, then concentrates technical approaches, mechanisms, and evidence-backed results in three or four numbered contributions
 - **No credit-stealing**: if a core module was mainly committed by others, the strongest wording generated is "contributed to / assisted with"
 - **Strong claims require strong evidence**: "led", "built from scratch", "solely responsible" are only allowed when backed by project-initialization commits and a high contribution level; otherwise the claim is marked `risky` with a suggested downgrade
 - **Zero fabricated metrics**: without benchmark or load-test evidence in the repository, numbers like "improved performance by 30%" or "handles millions of concurrent users" are never generated — instead you get a checklist of real metrics worth adding
@@ -96,6 +98,7 @@ contrib-skill analyze \
   --until 2025-06-01 \
   --mode resume \
   --target-role "Backend Engineer (Java)" \
+  --project-context "An internal order system expected to support high availability and concurrency" \
   --output ./output
 
 # Analyze all authors (resume material defaults to the top committer)
@@ -104,6 +107,29 @@ contrib-skill analyze --repo ./project --all-authors
 # Strict mode: keep only claims rated safe
 contrib-skill analyze --repo ./project --author alice --strict
 ```
+
+### Optional: measured benchmark + STAR result
+
+Run only after the user explicitly requests a benchmark and confirms a local/test/staging target:
+
+```bash
+contrib-benchmark \
+  --url http://127.0.0.1:8080/api/orders \
+  --scenario "Order query API" \
+  --environment test \
+  --requests 1000 \
+  --concurrency 20 \
+  --output ./benchmark/order-query.json
+
+contrib-skill analyze \
+  --repo ./project \
+  --author alice \
+  --mode resume \
+  --benchmark-report ./benchmark/order-query.json \
+  --output ./output
+```
+
+Without a measured report, no throughput or latency metrics are generated. When a related performance contribution exists, load configuration and measurements are merged into that numbered item; otherwise the tool emits a standalone STAR item. Production benchmarking is refused by default and requires explicit authorization plus `--allow-production`.
 
 ### Options
 
@@ -116,7 +142,9 @@ contrib-skill analyze --repo ./project --author alice --strict
 | `--since` / `--until` | Date filters, e.g. `2025-01-01` |
 | `--mode` | `full` / `resume` / `interview` / `audit` / `strict` |
 | `--target-role` | Target job role; produces tailoring advice (and honest warnings when the stack doesn't match) |
-| `--language` | `zh` / `en` (MVP reports are primarily Chinese; resume bullets include an English version) |
+| `--project-context` | User-confirmed project nature/use case; used in the resume context and separately validated against repository evidence |
+| `--benchmark-report` | Measured JSON report from `contrib-benchmark` or an equivalent runner; enables an environment-qualified STAR metric claim |
+| `--language` | `zh` / `en` (MVP reports and the paste-ready resume entry are primarily Chinese) |
 | `--output` | Output directory, defaults to `./contrib_output` |
 | `--max-commits` | Max commits to analyze, default 2000 |
 | `--include-diff` | Keep per-file numstat in evidence.json |
@@ -133,13 +161,13 @@ contrib_output/
   03_git_history_summary.md  # author summary table
   04_author_contribution.md  # per-author profile: ownership, roles, activity, evidence commits
   05_key_commits_analysis.md # key commits explained (reason/impact explicitly marked as inference)
-  06_resume_bullets.md       # six resume versions: conservative / standard / enhanced / STAR / English / role-tailored
+  06_resume_bullets.md       # paste-ready project entry + evidence map + confirmation checklist
   07_interview_script.md     # 30s/1m/3m intros, technical challenges, 14 follow-up questions, anti-grilling guide
   08_claim_risk_report.md    # per-claim risk verdicts + background-check reminders
   full_report.md             # consolidated report
 ```
 
-> 📂 See [docs/example-output/](docs/example-output/) for a complete, unedited run against a simulated e-commerce repository.
+> 📂 See [docs/example-output/](docs/example-output/) for a complete, unedited run against a simulated e-commerce repository, and [docs/benchmark-resume-example.md](docs/benchmark-resume-example.md) for an environment-qualified measured-data example.
 
 ## Risk levels
 
@@ -162,7 +190,7 @@ Tests build a real multi-author Git repository in a temp directory and verify pa
 - Commit classification is rule-based (message keywords + file paths), not AST-level semantics
 - Business context and architecture style are heuristic inferences, always labeled with confidence
 - Local repository only; no GitHub / Jira integration
-- Reports are primarily in Chinese; resume bullets include an English version
+- Reports and the paste-ready resume entry are primarily in Chinese
 
 ## Roadmap
 

@@ -15,3 +15,14 @@ def test_skip_dirs(sample_repo, tmp_path):
     structure = scan_repo(sample_repo)
     assert "node_modules" not in structure.top_dirs
     assert all("node_modules" not in p for p in structure.module_paths)
+
+
+def test_prefers_canonical_readme_over_localized_variant(tmp_path):
+    (tmp_path / "README.en.md").write_text("English description", encoding="utf-8")
+    (tmp_path / "README.md").write_text("中文项目介绍", encoding="utf-8")
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "README.md").write_text("示例目录说明", encoding="utf-8")
+
+    structure = scan_repo(tmp_path)
+
+    assert structure.readme_path == "README.md"

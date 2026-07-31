@@ -20,6 +20,7 @@ dev = ["pytest>=7.0"]
 
 [project.scripts]
 contrib-skill = "contrib_skill.main:main"
+contrib-benchmark = "contrib_skill.scripts.http_benchmark:main"
 
 [tool.setuptools.packages.find]
 include = ["contrib_skill*"]

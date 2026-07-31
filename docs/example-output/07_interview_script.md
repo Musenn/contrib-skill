@@ -8,13 +8,13 @@
 
 这个项目是支付方向的系统（contrib_demo_repo），技术栈以 Express、MySQL、Redis 为主。我在其中承担项目初始化者、核心业务开发者、后端开发者的角色，主要工作集中在 service、controller。
 
-架构上，MVC / Model-Service-Controller 倾向（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
+架构上，Controller-Service 分层架构（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
 
 ## 三、3 分钟版项目介绍
 
 这个项目是支付方向的系统（contrib_demo_repo），技术栈以 Express、MySQL、Redis 为主。我在其中承担项目初始化者、核心业务开发者、后端开发者的角色，主要工作集中在 service、controller。
 
-架构上，MVC / Model-Service-Controller 倾向（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
+架构上，Controller-Service 分层架构（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
 
 业务背景方面：README 描述（事实）：一个简单的电商订单与支付后端服务。
 核心流程：推断：订单创建与状态流转 → 支付与回调处理
@@ -43,7 +43,7 @@ README 描述（事实）：一个简单的电商订单与支付后端服务。 
 
 **Q3：项目整体架构是什么？**
 
-MVC / Model-Service-Controller 倾向。分层情况：Controller 层（接口/路由）；Service 层（业务逻辑）
+Controller-Service 分层架构。分层情况：Controller 层（接口/路由）；Service 层（业务逻辑）
 
 **Q4：为什么选择这个技术栈？**
 

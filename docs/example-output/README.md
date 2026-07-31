@@ -6,7 +6,7 @@ This directory contains the complete, unedited output of contrib-skill against a
 
 ## 模拟仓库设定 / The simulated repo
 
-`order-shop`：一个电商订单与支付后端服务（Express + MySQL + Redis），两位作者、8 个 commit、时间跨度 2025-01 ~ 2025-03。
+`order-shop`：一个电商订单与支付后端服务（Express + MySQL + Redis），两位作者、8 个 commit、时间跨度 2025-01 ~ 2025-03。生成时额外提供背景：“公司内部使用的订单与支付系统，业务场景要求高可用、高并发”。
 
 | # | 日期 | 作者 | Commit |
 | --- | --- | --- | --- |
@@ -26,6 +26,7 @@ contrib-skill analyze \
   --repo /tmp/contrib_demo_repo \
   --author Alice \
   --target-role "Java后端开发工程师" \
+  --project-context "公司内部使用的订单与支付系统，业务场景要求高可用、高并发" \
   --output docs/example-output
 ```
 
@@ -33,7 +34,7 @@ contrib-skill analyze \
 
 - `01_project_overview.md`：业务领域被推断为「支付（次要相关：电商/订单交易）」，置信度「高」——来自 README 与 commit 关键词的交叉证据
 - `04_author_contribution.md`：Alice 被识别为项目初始化者、贡献等级「很高」；Bob 的深夜提交、测试角色都有体现
-- `06_resume_bullets.md`：Alice 在 service 模块只拿到「深度参与」而非「主要负责」——因为提交数未达 owner 阈值，措辞被自动压到证据允许的级别
+- `06_resume_bullets.md`：项目简介只用两句交代订单处理、支付衔接、查询效率与系统方案；3—4 条编号集中展开 Express 请求处理、状态驱动生命周期、Redis 缓存和 MySQL 数据访问机制。证据仅支持分层架构，因此不虚构 MVC、DDD 或设计模式；示例未提供压测报告，所以没有量化性能指标
 - `08_claim_risk_report.md`：每条表述的风险裁决与证据列表
 - `evidence.json`：全部结论的结构化证据链（commit 级分类、置信度、推断标注）
 
