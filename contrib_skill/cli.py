@@ -152,11 +152,10 @@ def run_analysis(opts: AnalyzeOptions):
         resume = generate_resume(
             target_ev, target_commits, tech,
             target_role=opts.target_role, strict=opts.strict,
+            project=project, business=biz,
         )
         interview = generate_interview(result, target_ev, target_commits)
-        result.resume_claims = (
-            resume["conservative"] + resume["standard"] + resume["enhanced"]
-        )
+        result.resume_claims = resume["ready_bullets"]
     return result, structure, resume, interview
 
 

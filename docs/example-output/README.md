@@ -33,7 +33,7 @@ contrib-skill analyze \
 
 - `01_project_overview.md`：业务领域被推断为「支付（次要相关：电商/订单交易）」，置信度「高」——来自 README 与 commit 关键词的交叉证据
 - `04_author_contribution.md`：Alice 被识别为项目初始化者、贡献等级「很高」；Bob 的深夜提交、测试角色都有体现
-- `06_resume_bullets.md`：Alice 在 service 模块只拿到「深度参与」而非「主要负责」——因为提交数未达 owner 阈值，措辞被自动压到证据允许的级别
+- `06_resume_bullets.md`：第一部分是可直接粘贴的项目条目，不含 commit 次数、目录名和风险标签；后半部分保留逐条 Git 证据与待确认增强项
 - `08_claim_risk_report.md`：每条表述的风险裁决与证据列表
 - `evidence.json`：全部结论的结构化证据链（commit 级分类、置信度、推断标注）
 

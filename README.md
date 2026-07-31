@@ -116,7 +116,7 @@ contrib-skill analyze --repo ./project --author alice --strict
 | `--since` / `--until` | 时间过滤，如 `2025-01-01` |
 | `--mode` | `full`（全部）/ `resume`（简历向）/ `interview`（面试向）/ `audit`（审计向）/ `strict` |
 | `--target-role` | 目标岗位，生成简历适配建议（技术栈不匹配时会如实提醒） |
-| `--language` | `zh` / `en`（MVP 报告以中文为主，简历含英文版） |
+| `--language` | `zh` / `en`（MVP 报告与可粘贴简历主稿以中文为主） |
 | `--output` | 输出目录，默认 `./contrib_output` |
 | `--max-commits` | 最大分析 commit 数，默认 2000 |
 | `--include-diff` | evidence.json 中保留逐文件 numstat |
@@ -133,13 +133,13 @@ contrib_output/
   03_git_history_summary.md  # 作者概况表
   04_author_contribution.md  # 逐作者画像：模块归属、角色、活跃分布、证据 commit
   05_key_commits_analysis.md # 关键 commit 逐条解读（reason/impact 均标注为推断）
-  06_resume_bullets.md       # 六版简历：保守 / 标准 / 强化 / STAR / 英文 / 岗位适配
+  06_resume_bullets.md       # 可直接粘贴的项目条目 + 证据映射 + 待确认增强项
   07_interview_script.md     # 30s/1m/3m 介绍、技术难点、14 条高频追问、防问穿指南
   08_claim_risk_report.md    # 逐条表述风险裁决 + 背调提醒
   full_report.md             # 汇总报告
 ```
 
-> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。
+> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。`06_resume_bullets.md` 的第一部分可直接粘贴到简历，Git 证据与风险信息单独放在审计区。
 
 ## 风险分级
 

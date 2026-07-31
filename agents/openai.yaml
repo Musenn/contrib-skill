@@ -1,0 +1,4 @@
+interface:
+  display_name: "Contrib Skill"
+  short_description: "将 Git 贡献转成可直接使用、可背调的简历项目描述"
+  default_prompt: "Use $contrib-skill to analyze this repository and draft an evidence-backed resume project entry."

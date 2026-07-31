@@ -94,7 +94,12 @@ def scan_repo(repo_path: Path | str, max_files: int = 50000) -> RepoStructure:
             low = fname.lower()
             rel_low = rel_file.lower()
 
-            if low.startswith("readme") and not structure.readme_path:
+            # Prefer the canonical README.md over localized variants such as
+            # README.en.md, regardless of filesystem enumeration order.
+            rel_normalized = rel_file.replace("\\", "/").lower()
+            if rel_normalized == "readme.md":
+                structure.readme_path = rel_file
+            elif low.startswith("readme") and not structure.readme_path:
                 structure.readme_path = rel_file
             if fname in DEPENDENCY_FILES:
                 structure.dependency_files.append(rel_file)

@@ -1,23 +1,27 @@
-"""ResumeGenerator：基于证据生成多版本简历表述，每条都经过 ClaimRiskChecker。"""
+"""Generate a paste-ready resume project entry backed by Git evidence."""
 from __future__ import annotations
 
-from ..analyzers.claim_risk_checker import check_claim, verb_for_module
+import re
+from datetime import datetime
+from pathlib import Path
+
+from ..analyzers.claim_risk_checker import check_claim
 from ..models import (
     AuthorEvidence,
+    BusinessContextEvidence,
     GitCommitEvidence,
+    ProjectEvidence,
     RISK_SAFE,
     ResumeClaim,
     TechStackEvidence,
 )
 
 METRIC_SUGGESTIONS = [
-    "接口响应时间变化（需有压测或监控数据）",
-    "bug 数量 / 故障率下降情况",
-    "测试覆盖率提升幅度",
-    "用户量 / 数据量级",
-    "QPS / 并发量（需有压测记录）",
-    "部署环境（测试 / 预发 / 生产）",
-    "线上使用情况与运行时长",
+    "接口响应时间 / P95 / P99（需压测或监控数据）",
+    "吞吐量、QPS 或批处理耗时（需压测记录）",
+    "故障率、超时率或缺陷数量变化",
+    "测试覆盖率与自动化用例数量",
+    "真实用户量、数据量级与线上运行时长",
 ]
 
 _ROLE_TECH_HINTS = {
@@ -32,30 +36,16 @@ _ROLE_TECH_HINTS = {
     "全栈": [],
 }
 
-_VERB_EN = {
-    "主要负责": "Took primary responsibility for",
-    "深度参与": "Was deeply involved in",
-    "负责该模块部分开发与维护": "Developed and maintained parts of",
-    "参与": "Contributed to",
-    "协助": "Assisted in",
-}
+_CONVENTIONAL_PREFIX = re.compile(
+    r"^(?:feat(?:ure)?|fix|bugfix|hotfix|perf|performance|refactor|test|tests|"
+    r"docs?|ci|build|chore|style|security|sec|config|init)(?:\([^)]*\))?[!：:]?\s*",
+    re.IGNORECASE,
+)
 
-_TYPE_LABEL = {
-    "feature": "功能开发",
-    "bugfix": "缺陷修复",
-    "refactor": "重构",
-    "performance": "性能相关改动",
-    "security": "安全相关改动",
-    "test": "测试补充",
-    "docs": "文档维护",
-    "config": "配置与部署调整",
-    "ci": "CI 维护",
-    "dependency": "依赖管理",
-    "architecture": "基础架构搭建",
-    "build": "构建调整",
-    "style": "样式调整",
-    "unknown": "其他改动",
-}
+_TYPE_ORDER = (
+    "architecture", "feature", "security", "performance", "refactor",
+    "bugfix", "test", "ci", "config", "dependency", "build",
+)
 
 
 def generate_resume(
@@ -64,169 +54,315 @@ def generate_resume(
     tech: TechStackEvidence,
     target_role: str = "",
     strict: bool = False,
+    project: ProjectEvidence | None = None,
+    business: BusinessContextEvidence | None = None,
 ) -> dict:
-    # (root) 是「仓库根目录散落文件」的占位，不构成业务模块，仅在没有其他模块时保留
-    modules = [m for m in author_ev.main_modules if m != "(root)"][:4]
-    if not modules and "(root)" in author_ev.main_modules:
-        modules = ["(root)"]
-    tech_str = _tech_string(tech)
-    tech_str_en = _tech_string_en(tech)
-
-    conservative: list[ResumeClaim] = []
-    standard: list[ResumeClaim] = []
-    enhanced: list[ResumeClaim] = []
-    english: list[ResumeClaim] = []
-    star: list[dict] = []
-
-    for module in modules:
-        mod_commits = [e for e in author_commits if module in e.changed_modules]
-        if not mod_commits:
-            continue
-        evidence = _evidence_list(module, mod_commits)
-        work_desc = _work_description(mod_commits)
-        verb = verb_for_module(author_ev, module)
-
-        # 保守真实版：一律用「参与」
-        conservative.append(
-            check_claim(
-                f"参与 {module} 模块的开发与维护，{work_desc}",
-                author_ev, evidence,
-            )
-        )
-        # 标准求职版：按模块归属等级用词
-        standard.append(
-            check_claim(
-                f"{verb} {module} 模块，基于 {tech_str}，{work_desc}",
-                author_ev, evidence,
-            )
-        )
-        # 强化表达版：仅在归属等级允许时加强，不凭空拔高
-        enhanced.append(
-            check_claim(
-                _enhanced_text(verb, module, tech_str, work_desc, author_ev),
-                author_ev, evidence,
-            )
-        )
-        # 英文版
-        en_verb = _VERB_EN.get(verb, "Contributed to")
-        english.append(
-            check_claim(
-                f"{en_verb} the {module} module ({tech_str_en}); "
-                f"work covered {_work_description_en(mod_commits)}.",
-                author_ev, evidence,
-            )
-        )
-        star.append(_star_entry(module, verb, tech_str, mod_commits, evidence))
-
+    """Build one concise project entry, then keep evidence outside the paste area."""
+    selected_groups = _select_resume_groups(author_commits, max_items=4)
+    ready_bullets = [
+        _claim_from_group(group, author_ev, tech)
+        for group in selected_groups
+    ]
     if strict:
-        conservative = [c for c in conservative if c.risk_level == RISK_SAFE]
-        standard = [c for c in standard if c.risk_level == RISK_SAFE]
-        enhanced = [c for c in enhanced if c.risk_level == RISK_SAFE]
-        english = [c for c in english if c.risk_level == RISK_SAFE]
+        ready_bullets = [c for c in ready_bullets if c.risk_level == RISK_SAFE]
 
+    project_entry = {
+        "project_name": project.project_name if project else "项目名称",
+        "subtitle": _project_subtitle(business),
+        "period": _period(author_ev.first_commit_date, author_ev.last_commit_date),
+        "role": _resume_role(author_ev),
+        "tech_stack": _tech_string(tech),
+        "summary": _project_summary(business),
+    }
+
+    # Keep the former keys for callers that consumed the Python return value.
+    # The Markdown output intentionally presents only one primary version.
     return {
-        "conservative": conservative,
-        "standard": standard,
-        "enhanced": enhanced,
-        "star": star,
-        "english": english,
+        "project_entry": project_entry,
+        "ready_bullets": ready_bullets,
+        "confirmation_prompts": _confirmation_prompts(
+            [commit for group in selected_groups for commit in group], business
+        ),
         "target_role_notes": _target_role_notes(target_role, tech),
         "metric_suggestions": METRIC_SUGGESTIONS,
+        "conservative": ready_bullets,
+        "standard": ready_bullets,
+        "enhanced": ready_bullets,
+        "star": [],
+        "english": [],
     }
 
 
-def _tech_string(tech: TechStackEvidence) -> str:
-    parts = tech.frameworks[:3] + tech.databases[:2] + tech.middlewares[:2]
-    return "、".join(parts) if parts else "项目现有技术栈"
+def _select_resume_groups(
+    commits: list[GitCommitEvidence], max_items: int
+) -> list[list[GitCommitEvidence]]:
+    eligible = [
+        c for c in commits
+        if not c.is_merge and c.inferred_type in _TYPE_ORDER
+    ]
+    by_type = {
+        ctype: sorted(
+            (c for c in eligible if c.inferred_type == ctype),
+            key=lambda c: c.date,
+        )
+        for ctype in _TYPE_ORDER
+    }
+
+    selected: list[list[GitCommitEvidence]] = []
+    used_hashes: set[str] = set()
+
+    def add(group: list[GitCommitEvidence]) -> None:
+        fresh = [c for c in group if c.hash not in used_hashes]
+        if fresh and len(selected) < max_items:
+            selected.append(fresh)
+            used_hashes.update(c.hash for c in fresh)
+
+    # Establish the project, show up to two concrete features, then reserve room
+    # for a different engineering dimension such as security or performance.
+    if by_type["architecture"]:
+        add([by_type["architecture"][0]])
+    for group in _group_feature_commits(by_type["feature"])[:2]:
+        add(group)
+    for ctype in ("security", "performance", "refactor", "bugfix", "test",
+                  "ci", "config", "dependency", "build"):
+        if by_type[ctype]:
+            add([by_type[ctype][0]])
+
+    # Fill any remaining slots deterministically without duplicating a commit.
+    for ctype in _TYPE_ORDER:
+        for commit in by_type[ctype]:
+            add([commit])
+
+    # A documentation-only or unconventional repository should still produce a
+    # truthful, modest entry instead of an empty file.
+    if not selected:
+        fallback = [c for c in commits if not c.is_merge]
+        selected = [[c] for c in sorted(fallback, key=lambda c: c.date)[:max_items]]
+    return selected
 
 
-def _tech_string_en(tech: TechStackEvidence) -> str:
-    parts = tech.frameworks[:3] + tech.databases[:2] + tech.middlewares[:2]
-    return ", ".join(parts) if parts else "the project's existing tech stack"
+def _group_feature_commits(
+    commits: list[GitCommitEvidence],
+) -> list[list[GitCommitEvidence]]:
+    groups: dict[str, list[GitCommitEvidence]] = {}
+    for commit in commits:
+        groups.setdefault(_commit_topic(commit), []).append(commit)
+    return list(groups.values())
 
 
-def _evidence_list(module: str, commits: list[GitCommitEvidence]) -> list[str]:
-    out = []
-    for e in commits[:5]:
-        files = ", ".join(e.changed_files[:3])
-        out.append(f"commit {e.short_hash}（{e.inferred_type}）：{files}")
+def _commit_topic(commit: GitCommitEvidence) -> str:
+    generic = {"index", "main", "app", "application", "config", "utils", "common"}
+    suffixes = (
+        "_controller", "_service", "_repository", "_repo", "_handler",
+        "_api", "_client", "_model", "_entity", "_test", "_tests",
+    )
+    for file_path in commit.changed_files:
+        stem = Path(file_path).stem.lower()
+        for suffix in suffixes:
+            if stem.endswith(suffix):
+                stem = stem[:-len(suffix)]
+                break
+        if stem and stem not in generic:
+            return stem
+    words = re.findall(r"[a-zA-Z0-9_\u4e00-\u9fff]+", _clean_commit_message(commit.message))
+    return words[0].lower() if words else commit.short_hash
+
+
+def _claim_from_group(
+    commits: list[GitCommitEvidence],
+    author_ev: AuthorEvidence,
+    tech: TechStackEvidence,
+) -> ResumeClaim:
+    commit = commits[0]
+    summaries = [_clean_commit_message(item.message) for item in commits]
+    summary = "、".join(dict.fromkeys(summaries))
+    modules = sorted({module for item in commits for module in item.changed_modules})
+    verb = _role_verb(author_ev, modules)
+
+    if commit.inferred_type == "architecture" or _looks_like_initialization(summary):
+        if _looks_like_initialization(summary):
+            action = "完成项目骨架、依赖与基础配置初始化"
+        else:
+            action = summary
+        text = (
+            f"参与项目初始化与基础架构搭建，{action}；"
+            f"基于 {_architecture_tech_string(tech)} 建立可持续迭代的工程基线。"
+        )
+    elif commit.inferred_type == "feature":
+        text = f"{verb}核心功能开发，{summary}，完善项目关键业务链路。"
+    elif commit.inferred_type == "security":
+        text = f"{verb}安全能力建设，{summary}，加强关键链路的认证、授权或数据保护。"
+    elif commit.inferred_type == "performance":
+        text = f"围绕关键链路开展性能优化，{summary}，减少重复计算或资源访问开销。"
+    elif commit.inferred_type == "refactor":
+        text = f"{verb}代码重构，{summary}，改善模块边界与后续维护效率。"
+    elif commit.inferred_type == "bugfix":
+        text = f"参与稳定性治理，{summary}，完善异常路径和边界输入处理。"
+    elif commit.inferred_type == "test":
+        text = f"补充质量保障能力，{summary}，覆盖关键场景的自动化回归。"
+    elif commit.inferred_type in {"ci", "config", "dependency", "build"}:
+        text = f"完善工程化建设，{summary}，提升构建、配置与交付流程的可维护性。"
+    else:
+        text = f"参与项目迭代与维护，{summary}。"
+
+    evidence = [item for commit in commits for item in _evidence_list(commit)]
+    return check_claim(text, author_ev, evidence)
+
+
+def _role_verb(author_ev: AuthorEvidence, modules: list[str]) -> str:
+    levels = [
+        author_ev.module_ownership[m]
+        for m in modules
+        if m != "(root)" and m in author_ev.module_ownership
+    ]
+    if not levels:
+        return "参与"
+    rank = {"assistant": 0, "participant": 1, "maintainer": 2, "deep": 3, "owner": 4}
+    weakest = min(rank.get(level, 1) for level in levels)
+    if weakest >= 4:
+        return "主要负责"
+    if weakest >= 3:
+        return "深度参与"
+    if weakest >= 2:
+        return "负责"
+    return "参与"
+
+
+def _clean_commit_message(message: str) -> str:
+    text = _CONVENTIONAL_PREFIX.sub("", message.strip())
+    text = re.sub(r"\s+", " ", text).strip(" ;；,.，。")
+    return text or "完成相关功能与工程调整"
+
+
+def _looks_like_initialization(text: str) -> bool:
+    low = text.lower()
+    return any(word in low for word in (
+        "init", "scaffold", "初始化", "脚手架", "项目骨架", "搭建项目",
+    ))
+
+
+def _evidence_list(commit: GitCommitEvidence) -> list[str]:
+    files = "、".join(commit.changed_files[:4]) or "无文件路径"
+    return [
+        f"commit {commit.short_hash} [{commit.inferred_type}] "
+        f"{commit.message}；文件：{files}"
+    ]
+
+
+def _tech_items(tech: TechStackEvidence) -> list[str]:
+    languages = [
+        name for name, _ in
+        sorted(tech.languages.items(), key=lambda item: -item[1])[:2]
+    ]
+    candidates = (
+        languages + tech.frameworks + tech.databases + tech.middlewares
+        + tech.build_tools + tech.deployment + tech.test_tools
+    )
+    out: list[str] = []
+    for item in candidates:
+        if item and item not in out:
+            out.append(item)
+        if len(out) >= 8:
+            break
     return out
 
 
-def _work_description(commits: list[GitCommitEvidence]) -> str:
-    counts: dict[str, int] = {}
-    for e in commits:
-        counts[e.inferred_type] = counts.get(e.inferred_type, 0) + 1
-    top = sorted(counts.items(), key=lambda kv: -kv[1])[:3]
-    parts = [f"{_TYPE_LABEL.get(t, t)}（{n} 次提交）" for t, n in top]
-    return "工作包括 " + "、".join(parts)
+def _tech_string(tech: TechStackEvidence) -> str:
+    return " · ".join(_tech_items(tech)) or "仓库现有技术栈"
 
 
-def _work_description_en(commits: list[GitCommitEvidence]) -> str:
-    counts: dict[str, int] = {}
-    for e in commits:
-        counts[e.inferred_type] = counts.get(e.inferred_type, 0) + 1
-    top = sorted(counts.items(), key=lambda kv: -kv[1])[:3]
-    return ", ".join(f"{t} ({n} commits)" for t, n in top)
+def _architecture_tech_string(tech: TechStackEvidence) -> str:
+    candidates = tech.frameworks + tech.databases + tech.middlewares
+    if not candidates:
+        candidates = [
+            name for name, _ in
+            sorted(tech.languages.items(), key=lambda item: -item[1])
+        ]
+    return " + ".join(dict.fromkeys(candidates[:5])) or "仓库现有技术栈"
 
 
-def _enhanced_text(
-    verb: str, module: str, tech_str: str, work_desc: str, author_ev: AuthorEvidence
-) -> str:
-    if verb == "主要负责":
-        span = ""
-        if author_ev.first_commit_date and author_ev.last_commit_date:
-            days = (author_ev.last_commit_date - author_ev.first_commit_date).days
-            if days >= 60:
-                span = f"，持续迭代 {days // 30} 个月以上"
-        return f"主要负责 {module} 模块的设计与实现，基于 {tech_str}，{work_desc}{span}"
-    if verb == "深度参与":
-        return f"深度参与 {module} 模块开发，基于 {tech_str}，{work_desc}"
-    # 归属等级不够，强化版也不拔高
-    return f"{verb} {module} 模块，基于 {tech_str}，{work_desc}"
+def _project_subtitle(business: BusinessContextEvidence | None) -> str:
+    if not business or not business.inferred_domain:
+        return "代码贡献项目"
+    return business.inferred_domain.split("（", 1)[0].strip()
 
 
-def _star_entry(
-    module: str,
-    verb: str,
-    tech_str: str,
+def _project_summary(business: BusinessContextEvidence | None) -> str:
+    if not business:
+        return "基于仓库代码与 Git 历史还原的项目贡献。"
+    text = business.project_goal.strip()
+    for prefix in ("README 描述（事实）：", "推断："):
+        if text.startswith(prefix):
+            text = text[len(prefix):].strip()
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"!\[[^]]*]\([^)]*\)", "", text)
+    text = re.sub(r"\[([^]]+)]\([^)]*\)", r"\1", text)
+    text = re.sub(r"(?:\*\*|__)(.+?)(?:\*\*|__)", r"\1", text)
+    text = re.sub(r"(?:\*|_)(.+?)(?:\*|_)", r"\1", text)
+    text = re.sub(r"\s+", " ", text).strip(" #")
+    if not text or "无 README" in text:
+        return f"围绕{_project_subtitle(business)}场景建设的工程项目。"
+    return text[:180]
+
+
+def _period(start: datetime | None, end: datetime | None) -> str:
+    if not start and not end:
+        return "时间待补充"
+    if start and end:
+        return f"{start:%Y.%m} — {end:%Y.%m}"
+    value = start or end
+    assert value is not None
+    return f"{value:%Y.%m}"
+
+
+def _resume_role(author_ev: AuthorEvidence) -> str:
+    levels = set(author_ev.module_ownership.values())
+    if "owner" in levels:
+        return "核心模块主要负责人"
+    if author_ev.is_project_initializer and author_ev.touches_core_modules:
+        return "项目初始化与核心功能开发"
+    if "deep" in levels:
+        return "核心模块深度参与"
+    if "maintainer" in levels:
+        return "模块开发与维护"
+    return "功能开发参与"
+
+
+def _confirmation_prompts(
     commits: list[GitCommitEvidence],
-    evidence: list[str],
-) -> dict:
-    feature_msgs = [e.message for e in commits if e.inferred_type == "feature"][:2]
-    fix_msgs = [e.message for e in commits if e.inferred_type == "bugfix"][:2]
-    return {
-        "module": module,
-        "situation": f"项目需要 {module} 模块支撑相关业务能力（背景细节建议结合实际补充）",
-        "task": f"{verb}该模块的开发任务",
-        "action": (
-            f"基于 {tech_str} 完成相关提交，"
-            f"代表性工作：{'；'.join(feature_msgs + fix_msgs) or '见证据 commit'}"
-        ),
-        "result": "模块按提交记录持续演进并合入主干；量化效果需补充真实指标",
-        "evidence": evidence,
-    }
+    business: BusinessContextEvidence | None,
+) -> list[str]:
+    prompts = [
+        "确认项目性质与使用场景：真实上线、公司内部使用、开源项目，还是课程/练习项目。",
+        "确认个人角色与团队边界：团队人数、本人负责范围，以及是否可使用“主导/主要负责”。",
+        "补充真实规模：用户量、数据量、QPS、运行时长或 star；没有可靠数据就不要填写。",
+    ]
+    types = {c.inferred_type for c in commits}
+    if "performance" in types:
+        prompts.append("如有压测或监控记录，补充性能优化前后的 P95/P99、吞吐量或资源消耗。")
+    if "test" in types:
+        prompts.append("如有测试报告，补充自动化用例数量、覆盖率或回归耗时变化。")
+    if business and business.target_users and "推断" not in business.target_users:
+        prompts.append(f"核对目标用户描述：{business.target_users}")
+    return prompts[:5]
 
 
 def _target_role_notes(target_role: str, tech: TechStackEvidence) -> list[str]:
     if not target_role:
         return []
     role_low = target_role.lower()
-    notes: list[str] = []
     matched: list[str] = []
+    available = _tech_items(tech)
     for key, hints in _ROLE_TECH_HINTS.items():
         if key in role_low:
-            matched = [t for t in hints if t in
-                       tech.frameworks + tech.databases + tech.middlewares]
+            matched = [item for item in hints if item in available]
             break
     if matched:
-        notes.append(
-            f"面向「{target_role}」：建议在简历中突出 {', '.join(matched)} 相关经验"
-            "（仓库依赖中确有这些技术）"
-        )
-    else:
-        notes.append(
-            f"注意：仓库技术栈与「{target_role}」的典型技术要求匹配度有限，"
-            "建议如实呈现项目技术栈，不要包装成不存在的技术经验"
-        )
-    return notes
+        return [
+            f"面向「{target_role}」：优先保留 {', '.join(matched)} 相关成果，"
+            "并在面试中准备对应的设计取舍与问题排查过程。"
+        ]
+    return [
+        f"仓库技术栈与「{target_role}」的典型要求匹配度有限；"
+        "应如实呈现现有技术，不包装不存在的经验。"
+    ]

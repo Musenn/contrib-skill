@@ -1,4 +1,5 @@
 from contrib_skill.analyzers.git_analyzer import GitAnalyzer
+from contrib_skill.utils.git_utils import run_git
 
 
 def test_collect_commits(sample_repo):
@@ -42,3 +43,21 @@ def test_aggregate_authors(sample_repo):
     assert alice.last_commit_date.month == 3
     assert bob.night_commits == 1
     assert "service" in alice.module_counts or "src" in alice.module_counts
+
+
+def test_run_git_forces_utf8_decoding(sample_repo, monkeypatch):
+    import subprocess
+
+    original_run = subprocess.run
+    captured = {}
+
+    def spy(*args, **kwargs):
+        captured.update(kwargs)
+        return original_run(*args, **kwargs)
+
+    monkeypatch.setattr(subprocess, "run", spy)
+    output = run_git(sample_repo, "log", "-1", "--pretty=%s")
+
+    assert captured["encoding"] == "utf-8"
+    assert captured["errors"] == "replace"
+    assert "update readme" in output

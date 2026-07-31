@@ -1,81 +1,60 @@
-# 简历表述建议{{ "（" ~ author_name ~ "）" if author_name }}
+# 简历项目描述{% if author_name %}（{{ author_name }}）{% endif %}
 
-> 每条表述均附风险等级与 Git 证据。`safe` 可直接使用；`needs_confirmation` 须本人确认后使用；`risky` 不建议使用。
+> “可直接粘贴”只收录有 Git 证据的表述。复制到简历时不要带上后面的证据映射与待确认清单。
 
-## 一、保守真实版（最稳妥，适合背调严格的公司）
+## 可直接粘贴的项目条目
 
-{% for c in resume.conservative %}
-- {{ c.text }}
-    - 风险等级：{{ c.risk_level }}{{ "（" ~ c.forbidden_reason ~ "）" if c.forbidden_reason }}
-{% for e in c.support_evidence %}
-    - 证据：{{ e }}
-{% endfor %}
+### {{ resume.project_entry.project_name }} — {{ resume.project_entry.subtitle }}
+
+**参与时间**：{{ resume.project_entry.period }}
+
+**个人角色**：{{ resume.project_entry.role }}
+
+**技术栈**：{{ resume.project_entry.tech_stack }}
+
+**项目简介**：{{ resume.project_entry.summary }}
+
+{% for claim in resume.ready_bullets %}
+{{ loop.index }}. {{ claim.text }}
 {% else %}
-（无符合条件的表述）
+当前没有足够的 Git 证据生成可直接使用的成果条目。
 {% endfor %}
 
-## 二、标准求职版（按模块归属等级用词）
+## 证据映射（不要粘贴到简历）
 
-{% for c in resume.standard %}
-- {{ c.text }}
-    - 风险等级：{{ c.risk_level }}{{ "（" ~ c.forbidden_reason ~ "）" if c.forbidden_reason }}
-{% for e in c.support_evidence %}
-    - 证据：{{ e }}
-{% endfor %}
-{% else %}
-（无符合条件的表述）
-{% endfor %}
+{% for claim in resume.ready_bullets %}
+### {{ loop.index }}. {{ claim.text }}
 
-## 三、强化表达版（仅在证据允许的范围内加强）
-
-{% for c in resume.enhanced %}
-- {{ c.text }}
-    - 风险等级：{{ c.risk_level }}{{ "（" ~ c.forbidden_reason ~ "）" if c.forbidden_reason }}
-{% for e in c.support_evidence %}
-    - 证据：{{ e }}
-{% endfor %}
-{% else %}
-（无符合条件的表述）
-{% endfor %}
-
-## 四、STAR 版
-
-{% for s in resume.star %}
-### {{ s.module }} 模块
-
-- **Situation**：{{ s.situation }}
-- **Task**：{{ s.task }}
-- **Action**：{{ s.action }}
-- **Result**：{{ s.result }}
-{% for e in s.evidence %}
-- 证据：{{ e }}
+- 风险等级：`{{ claim.risk_level }}`
+{% if claim.forbidden_reason %}
+- 风险说明：{{ claim.forbidden_reason }}
+{% endif %}
+{% for evidence in claim.support_evidence %}
+- 证据：{{ evidence }}
 {% endfor %}
 
 {% else %}
-（无 STAR 条目）
+（无）
 {% endfor %}
 
-## 五、英文版（English）
+## 待本人确认后补强
 
-{% for c in resume.english %}
-- {{ c.text }}
-    - Risk level: {{ c.risk_level }}
-{% else %}
-(No bullets available)
+{% for prompt in resume.confirmation_prompts %}
+- [ ] {{ prompt }}
 {% endfor %}
 
-## 六、目标岗位适配建议
+{% if resume.target_role_notes %}
+## 目标岗位适配
 
-{% for n in resume.target_role_notes %}
-- {{ n }}
-{% else %}
-- 未指定目标岗位（--target-role）
+{% for note in resume.target_role_notes %}
+- {{ note }}
 {% endfor %}
+{% endif %}
 
-## 七、可补充指标建议
+## 可补充的真实指标
 
-以下指标**仓库中没有证据**，只有你能提供真实数据后才可写入简历：
+以下指标只有在本人能提供可靠来源时才能加入正文：
 
-{% for m in resume.metric_suggestions %}
-{{ loop.index }}. {{ m }}
+{% for metric in resume.metric_suggestions %}
+- {{ metric }}
 {% endfor %}

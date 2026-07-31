@@ -116,7 +116,7 @@ contrib-skill analyze --repo ./project --author alice --strict
 | `--since` / `--until` | Date filters, e.g. `2025-01-01` |
 | `--mode` | `full` / `resume` / `interview` / `audit` / `strict` |
 | `--target-role` | Target job role; produces tailoring advice (and honest warnings when the stack doesn't match) |
-| `--language` | `zh` / `en` (MVP reports are primarily Chinese; resume bullets include an English version) |
+| `--language` | `zh` / `en` (MVP reports and the paste-ready resume entry are primarily Chinese) |
 | `--output` | Output directory, defaults to `./contrib_output` |
 | `--max-commits` | Max commits to analyze, default 2000 |
 | `--include-diff` | Keep per-file numstat in evidence.json |
@@ -133,7 +133,7 @@ contrib_output/
   03_git_history_summary.md  # author summary table
   04_author_contribution.md  # per-author profile: ownership, roles, activity, evidence commits
   05_key_commits_analysis.md # key commits explained (reason/impact explicitly marked as inference)
-  06_resume_bullets.md       # six resume versions: conservative / standard / enhanced / STAR / English / role-tailored
+  06_resume_bullets.md       # paste-ready project entry + evidence map + confirmation checklist
   07_interview_script.md     # 30s/1m/3m intros, technical challenges, 14 follow-up questions, anti-grilling guide
   08_claim_risk_report.md    # per-claim risk verdicts + background-check reminders
   full_report.md             # consolidated report
@@ -162,7 +162,7 @@ Tests build a real multi-author Git repository in a temp directory and verify pa
 - Commit classification is rule-based (message keywords + file paths), not AST-level semantics
 - Business context and architecture style are heuristic inferences, always labeled with confidence
 - Local repository only; no GitHub / Jira integration
-- Reports are primarily in Chinese; resume bullets include an English version
+- Reports and the paste-ready resume entry are primarily in Chinese
 
 ## Roadmap
 
