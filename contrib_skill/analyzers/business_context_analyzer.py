@@ -143,6 +143,13 @@ def _first_paragraph(text: str) -> str:
 
 
 def _infer_flow(corpus: str) -> str:
+    developer_tool = (
+        any(word in corpus for word in ("git", "commit", "仓库", "repository"))
+        and any(word in corpus for word in ("resume", "简历", "contribution", "贡献"))
+    )
+    if developer_tool:
+        return "推断：Git 提交与仓库结构解析 → 个人贡献与风险分析 → 简历与面试材料生成"
+
     flows = []
     if "login" in corpus or "登录" in corpus:
         flows.append("用户登录/鉴权")

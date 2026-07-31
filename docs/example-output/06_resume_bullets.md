@@ -3,7 +3,7 @@
 
 ## 可直接粘贴的项目条目
 
-### contrib_demo_repo — 支付
+### contrib_demo_repo — 电商订单与支付
 
 **参与时间**：2025.01 — 2025.03
 
@@ -11,32 +11,41 @@
 
 **技术栈**：JavaScript · Express · MySQL · Redis · npm/yarn/pnpm · Jest
 
-**项目简介**：一个简单的电商订单与支付后端服务。
+**项目简介**：一个基于 Express、MySQL、Redis 的电商订单与支付后端服务，围绕订单创建与状态流转、支付与回调处理构建核心业务流程。代码按 Controller/Service 分层组织接口接入与业务逻辑；通过 Redis 缓存优化订单查询与数据访问路径；配套 Jest 单元测试形成自动化回归入口。
 
-1. 参与项目初始化与基础架构搭建，完成项目骨架、依赖与基础配置初始化；基于 Express + MySQL + Redis 建立可持续迭代的工程基线。
-2. 参与核心功能开发，新增订单创建接口、实现订单状态流转，完善项目关键业务链路。
-3. 参与核心功能开发，接入支付回调，完善项目关键业务链路。
-4. 围绕关键链路开展性能优化，订单查询增加 redis 缓存，减少重复计算或资源访问开销。
+1. 参与项目初始化与基础架构搭建，基于 Express + MySQL + Redis 完成项目骨架、依赖与基础配置初始化，建立 Controller/Service 分层开发基线。
+2. 参与订单核心功能开发，在 Controller 接口层、Service 业务层新增订单创建接口、实现订单状态流转，覆盖订单创建、业务处理与状态演进流程。
+3. 参与支付核心功能开发，在 Controller 接口层、Service 业务层接入支付回调，补齐支付结果接收与业务处理链路。
+4. 围绕订单查询链路开展性能优化，在 Service 业务层引入 Redis 缓存，减少重复数据访问并优化高频查询路径。
 
 ## 证据映射（不要粘贴到简历）
 
-### 1. 参与项目初始化与基础架构搭建，完成项目骨架、依赖与基础配置初始化；基于 Express + MySQL + Redis 建立可持续迭代的工程基线。
+### 项目简介上下文
+
+- 证据：README: README.md
+- 证据：领域关键词命中：payment, pay, 支付, 回调
+- 证据：业务流程（仓库语义推断）：订单创建与状态流转 → 支付与回调处理
+- 证据：目录分层：Controller 层（接口/路由）、Service 层（业务逻辑）
+- 证据：依赖文件：package.json → JavaScript · Express · MySQL · Redis · npm/yarn/pnpm · Jest
+- 证据：技术机制：commit 0a8f8b6 perf: 订单查询增加 redis 缓存
+
+### 1. 参与项目初始化与基础架构搭建，基于 Express + MySQL + Redis 完成项目骨架、依赖与基础配置初始化，建立 Controller/Service 分层开发基线。
 
 - 风险等级：`safe`
 - 证据：commit 2f052fd [architecture] init project scaffold；文件：.gitignore、README.md、package.json
 
-### 2. 参与核心功能开发，新增订单创建接口、实现订单状态流转，完善项目关键业务链路。
+### 2. 参与订单核心功能开发，在 Controller 接口层、Service 业务层新增订单创建接口、实现订单状态流转，覆盖订单创建、业务处理与状态演进流程。
 
 - 风险等级：`safe`
 - 证据：commit 1133c4f [feature] feat: 新增订单创建接口；文件：src/controller/order_controller.js、src/service/order_service.js
 - 证据：commit b8b8865 [feature] feat: 实现订单状态流转；文件：src/service/order_service.js
 
-### 3. 参与核心功能开发，接入支付回调，完善项目关键业务链路。
+### 3. 参与支付核心功能开发，在 Controller 接口层、Service 业务层接入支付回调，补齐支付结果接收与业务处理链路。
 
 - 风险等级：`safe`
 - 证据：commit 171ec66 [feature] feat: 接入支付回调；文件：src/controller/payment_controller.js、src/service/payment_service.js
 
-### 4. 围绕关键链路开展性能优化，订单查询增加 redis 缓存，减少重复计算或资源访问开销。
+### 4. 围绕订单查询链路开展性能优化，在 Service 业务层引入 Redis 缓存，减少重复数据访问并优化高频查询路径。
 
 - 风险等级：`safe`
 - 证据：commit 0a8f8b6 [performance] perf: 订单查询增加 redis 缓存；文件：src/service/order_service.js

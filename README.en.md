@@ -27,6 +27,7 @@ It is not a commit counter, and it is not a resume fabricator. It digs out the w
 ## Core principles
 
 - **Evidence chain first**: every conclusion is grounded in Git evidence and strictly labeled as *fact*, *high-confidence inference*, or *low-confidence assumption*, with an explicit confidence level (high/medium/low)
+- **Repository-context enrichment**: combines the README, core flows, architecture layers, detected stack, commit semantics, and changed files into complete context → approach → action → technical-effect narratives
 - **No credit-stealing**: if a core module was mainly committed by others, the strongest wording generated is "contributed to / assisted with"
 - **Strong claims require strong evidence**: "led", "built from scratch", "solely responsible" are only allowed when backed by project-initialization commits and a high contribution level; otherwise the claim is marked `risky` with a suggested downgrade
 - **Zero fabricated metrics**: without benchmark or load-test evidence in the repository, numbers like "improved performance by 30%" or "handles millions of concurrent users" are never generated — instead you get a checklist of real metrics worth adding

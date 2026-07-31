@@ -22,6 +22,14 @@
 
 ## 证据映射（不要粘贴到简历）
 
+### 项目简介上下文
+
+{% for evidence in resume.project_context_evidence %}
+- 证据：{{ evidence }}
+{% else %}
+- 仓库上下文证据不足，项目简介采用保守表达。
+{% endfor %}
+
 {% for claim in resume.ready_bullets %}
 ### {{ loop.index }}. {{ claim.text }}
 

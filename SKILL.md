@@ -1,11 +1,11 @@
 ---
 name: contrib-skill
-description: Analyze a local Git repository to reconstruct a contributor's evidence-backed work and generate a paste-ready Chinese resume project entry plus an interview/audit trail. Use when Codex needs to turn commit history into truthful resume bullets, inspect individual contributions, prepare project interview material, or check whether a claimed project responsibility is supported by Git evidence.
+description: Analyze a local Git repository to reconstruct a contributor's evidence-backed work and generate a context-rich, paste-ready Chinese resume project entry plus an interview/audit trail. Use when Codex needs to turn repository context and commit history into truthful resume bullets, inspect individual contributions, prepare project interview material, or check whether a claimed project responsibility is supported by Git evidence.
 ---
 
 # Contrib Skill
 
-Turn a local Git repository into concise resume and interview material without inventing responsibilities or metrics.
+Turn a local Git repository into context-rich resume and interview material without inventing responsibilities or metrics.
 
 ## Workflow
 
@@ -19,6 +19,7 @@ Turn a local Git repository into concise resume and interview material without i
 
 4. Open `06_resume_bullets.md` first.
    - Copy only “可直接粘贴的项目条目” into the resume.
+   - Preserve the richer background, architecture, workflow, and technical-effect wording when the evidence map supports it.
    - Use “证据映射” to prepare interview explanations and verify wording.
    - Ask the user to answer “待本人确认后补强” before adding team scope, production impact, or metrics.
 5. Use `07_interview_script.md` for interview preparation and `08_claim_risk_report.md` for wording audits.
@@ -27,6 +28,7 @@ Turn a local Git repository into concise resume and interview material without i
 
 - Keep commit hashes, file paths, risk labels, and confirmation checklists outside the resume body.
 - Prefer business or technical outcomes over directory names and commit counts.
+- Enrich project context only from the README, detected dependencies, architecture layers, business-flow inference, commit semantics, and changed files.
 - Never fabricate percentages, QPS, user counts, production status, or team ownership.
 - Treat README-derived business context as fact only when the README states it directly; label other interpretations as inferences.
 - Downgrade “主导/从 0 到 1/独立负责” when the contribution evidence is insufficient.

@@ -35,3 +35,6 @@ def test_domain_uses_readme_intro_not_late_demo(tmp_path):
 
     assert result.inferred_domain.startswith("开发者工具/Git 分析")
     assert "电商" not in result.inferred_domain
+    assert "Git 提交与仓库结构解析" in result.core_business_flow
+    assert "个人贡献与风险分析" in result.core_business_flow
+    assert "简历与面试材料生成" in result.core_business_flow
