@@ -1,6 +1,7 @@
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 import pytest
 
@@ -8,6 +9,7 @@ from contrib_skill.analyzers.benchmark_loader import load_benchmark_report
 from contrib_skill.cli import run_analysis
 from contrib_skill.config import AnalyzeOptions
 from contrib_skill.generators.report_generator import ReportGenerator
+from contrib_skill.generators.resume_generator import generate_resume
 from contrib_skill.scripts.http_benchmark import run_benchmark
 
 
@@ -57,6 +59,18 @@ def test_http_benchmark_generates_loadable_measured_report(benchmark_report):
     assert result.requests_per_second > 0
     assert result.latency_p95_ms >= 0
     assert result.source_file == str(benchmark_report.resolve())
+
+
+def test_checked_in_benchmark_resume_example_is_loadable():
+    report_path = Path(__file__).parents[1] / "docs" / "benchmark-report.test.json"
+    result = load_benchmark_report(report_path)
+
+    assert result.environment == "test"
+    assert result.total_requests == 100
+    assert result.concurrency == 10
+    assert result.success_rate == 100
+    assert result.requests_per_second == 184.3
+    assert result.latency_p95_ms == 11.02
 
 
 def test_http_benchmark_refuses_production_without_explicit_override():
@@ -110,3 +124,86 @@ def test_benchmark_report_enables_safe_star_metric_claim(
     assert "压测量化成果的 STAR 结构" in text
     assert "**Situation**" in text
     assert "**Result**" in text
+
+
+def test_benchmark_metrics_merge_into_related_performance_contribution(
+    sample_repo, benchmark_report
+):
+    opts = AnalyzeOptions(repo=str(sample_repo), author="Alice", mode="resume")
+    result, _, _, _ = run_analysis(opts)
+    author = next(a for a in result.authors if a.author_email == "alice@example.com")
+    commits = [c for c in result.commits if c.author_email == author.author_email]
+    source = commits[0]
+    cache_commit = source.model_copy(update={
+        "hash": "f" * 40,
+        "short_hash": "f" * 7,
+        "message": "perf: 订单查询增加 redis 缓存",
+        "inferred_type": "performance",
+        "changed_files": ["src/service/order_service.js"],
+        "changed_modules": ["service"],
+    })
+    benchmark = load_benchmark_report(benchmark_report)
+
+    resume = generate_resume(
+        author,
+        [*commits, cache_commit],
+        result.tech_stack,
+        project=result.project,
+        business=result.business,
+        architecture=result.architecture,
+        repository_commits=[*result.commits, cache_commit],
+        benchmark=benchmark,
+    )
+
+    performance_claims = [
+        claim for claim in resume["ready_bullets"]
+        if "Redis 缓存机制" in claim.text
+    ]
+    assert len(performance_claims) == 1
+    claim = performance_claims[0]
+    assert "减少对 MySQL 的重复访问" in claim.text
+    assert "在测试环境编写并执行 HTTP 压测脚本" in claim.text
+    assert "20 次请求" in claim.text
+    assert "QPS" in claim.text
+    assert "P95 延迟" in claim.text
+    assert claim.risk_level == "safe"
+    assert len(resume["ready_bullets"]) <= 4
+
+
+def test_unrelated_benchmark_does_not_merge_into_performance_contribution(
+    sample_repo, benchmark_report
+):
+    opts = AnalyzeOptions(repo=str(sample_repo), author="Alice", mode="resume")
+    result, _, _, _ = run_analysis(opts)
+    author = next(a for a in result.authors if a.author_email == "alice@example.com")
+    commits = [c for c in result.commits if c.author_email == author.author_email]
+    cache_commit = commits[0].model_copy(update={
+        "hash": "e" * 40,
+        "short_hash": "e" * 7,
+        "message": "perf: 订单查询增加 redis 缓存",
+        "inferred_type": "performance",
+        "changed_files": ["src/service/order_service.js"],
+        "changed_modules": ["service"],
+    })
+    unrelated = load_benchmark_report(benchmark_report).model_copy(update={
+        "scenario": "用户登录接口",
+    })
+
+    resume = generate_resume(
+        author,
+        [*commits, cache_commit],
+        result.tech_stack,
+        project=result.project,
+        business=result.business,
+        architecture=result.architecture,
+        benchmark=unrelated,
+    )
+
+    cache_claim = next(
+        claim for claim in resume["ready_bullets"] if "Redis 缓存机制" in claim.text
+    )
+    assert "QPS" not in cache_claim.text
+    assert any(
+        "用户登录接口" in claim.text and "QPS" in claim.text
+        for claim in resume["ready_bullets"]
+    )

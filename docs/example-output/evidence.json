@@ -444,7 +444,7 @@
   "target_author": "Alice",
   "resume_claims": [
     {
-      "text": "参与项目工程基线建设，基于 Express + MySQL + Redis 完成基础工程、依赖与运行配置整合，为电商订单与支付相关能力的持续迭代提供统一基础。",
+      "text": "负责项目工程基线建设，基于 Express + MySQL + Redis 完成工程初始化与依赖集成，统一依赖版本、仓库忽略规则和运行说明；为电商订单与支付核心业务模块的后续开发提供一致的工程入口。",
       "risk_level": "safe",
       "support_evidence": [
         "commit 2f052fd [architecture] init project scaffold；文件：.gitignore、README.md、package.json"
@@ -453,7 +453,7 @@
       "forbidden_reason": ""
     },
     {
-      "text": "参与订单核心能力建设，实现订单创建与状态流转，形成覆盖订单创建、业务处理与状态演进的完整业务闭环。",
+      "text": "参与订单核心链路建设，基于 Express 组织请求接入与业务处理，实现订单创建与状态流转；以状态驱动方式约束订单生命周期，覆盖订单创建、业务处理与状态演进等关键环节。",
       "risk_level": "safe",
       "support_evidence": [
         "commit 1133c4f [feature] feat: 新增订单创建接口；文件：src/controller/order_controller.js、src/service/order_service.js",
@@ -463,7 +463,7 @@
       "forbidden_reason": ""
     },
     {
-      "text": "参与支付核心能力建设，接入支付回调并处理支付结果，完善支付结果接收与业务处理链路。",
+      "text": "参与支付核心链路建设，基于 Express 组织请求接入与业务处理，接入支付回调并处理支付结果；打通回调接收、支付结果处理与业务响应流程。",
       "risk_level": "safe",
       "support_evidence": [
         "commit 171ec66 [feature] feat: 接入支付回调；文件：src/controller/payment_controller.js、src/service/payment_service.js"
@@ -472,7 +472,7 @@
       "forbidden_reason": ""
     },
     {
-      "text": "围绕订单查询这一高频场景引入 Redis 缓存机制，减少重复数据访问，优化核心查询路径。",
+      "text": "围绕订单查询这一高频场景引入 Redis 缓存机制，将重复读取前移至缓存层，减少对 MySQL 的重复访问，收敛核心查询路径。",
       "risk_level": "safe",
       "support_evidence": [
         "commit 0a8f8b6 [performance] perf: 订单查询增加 redis 缓存；文件：src/service/order_service.js"

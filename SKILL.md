@@ -19,7 +19,8 @@ Turn a local Git repository into context-rich resume and interview material with
 
 4. Open `06_resume_bullets.md` first.
    - Copy only “可直接粘贴的项目条目” into the resume.
-   - Preserve the richer background, architecture, workflow, and technical-effect wording when the evidence map supports it.
+   - Keep the project summary to one or two compact sentences: state the user/requirement context first, then the system boundary and evidence-backed architecture. Put the detailed technical substance in three or four numbered contributions.
+   - Make each numbered contribution cover at least three of these elements: owned object, architecture/technical approach, key mechanism, problem or capability, measured result. Prefer one coherent long sentence over several file-level sub-bullets.
    - Keep numbered contributions at the business capability, technical approach, mechanism, and engineering-value level. Do not enumerate Controller/Service/Repository layers or file-level implementation details in the resume body.
    - Lead the project summary with user/requirement context: target users, operational scenario, and the problem to solve. Describe the stack only after the requirement.
    - Name DDD, MVC, Repository, Strategy, Factory, Adapter, Observer, or similar patterns only when directory names, changed files, commit semantics, or dependencies provide direct evidence.
@@ -37,12 +38,13 @@ Use this workflow only when the user explicitly asks for load/performance testin
 3. Create or adapt a repository-local scenario script when setup, auth, payload generation, or cleanup is needed. Use `contrib-benchmark` as the measurement runner and save the JSON report.
 4. Actually run the benchmark; do not draft numbers from configuration alone.
 5. Re-run `contrib-skill analyze` with `--benchmark-report <report.json>`.
-6. Use the generated natural-language bullet in the resume and the structured Situation/Task/Action/Result block for audit and interview preparation. Always retain the measured environment qualifier.
+6. Use the generated natural-language bullet in the resume and the structured Situation/Task/Action/Result block for audit and interview preparation. If a related performance contribution exists, the measured environment, load configuration, and result are merged into that numbered item; otherwise a standalone STAR item is generated. Always retain the environment qualifier.
 
 ## Guardrails
 
 - Keep commit hashes, file paths, risk labels, and confirmation checklists outside the resume body.
 - Prefer business or technical outcomes over directory names and commit counts.
+- Keep the information ratio aligned with strong resumes: a short requirement-oriented summary and three or four technically dense numbered contributions. Do not let the summary become longer than the contribution body.
 - Enrich project context only from the README, detected dependencies, architecture layers, business-flow inference, commit semantics, and changed files.
 - Treat explicit user context as a separate evidence source: use it for background wording, label it as user-provided in the audit trail, and never present it as repository fact.
 - Validate high-availability, high-concurrency, production, and similar strong context against visible deployment, resilience, middleware, benchmark, and monitoring evidence. Keep the supplied background in the entry, but mark unsupported overall claims `risky` with a concrete explanation.

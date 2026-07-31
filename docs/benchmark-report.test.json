@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "tool": "contrib-skill-http-benchmark",
+  "scenario": "订单查询接口",
+  "target": "http://127.0.0.1:50687/api/orders",
+  "environment": "test",
+  "generated_at": "2026-07-31T14:06:00.887645+00:00",
+  "config": {
+    "requests": 100,
+    "concurrency": 10,
+    "timeout_seconds": 2,
+    "method": "GET"
+  },
+  "results": {
+    "duration_seconds": 0.5426,
+    "successful_requests": 100,
+    "failed_requests": 0,
+    "success_rate": 100.0,
+    "requests_per_second": 184.3,
+    "latency_ms": {
+      "avg": 26.4,
+      "p50": 5.66,
+      "p95": 11.02,
+      "p99": 511.29,
+      "max": 515.93
+    }
+  }
+}

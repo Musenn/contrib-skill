@@ -32,17 +32,20 @@ def test_resume_entry_is_paste_ready(sample_repo):
     assert "面向电商交易中的订单处理与支付结果衔接需求" in summary
     assert "项目聚焦订单状态流转和支付回调处理" in summary
     assert "基于 Express、MySQL、Redis" in summary
-    assert "订单创建与状态流转、支付与回调处理" in summary
     assert "采用分层架构" in summary
     assert "DDD" not in summary
+    assert len(summary) <= 180
+    assert summary.count("。") <= 2
 
     texts = [claim.text for claim in resume["ready_bullets"]]
     assert any(
-        "订单核心能力建设" in text
+        "订单核心链路建设" in text
+        and "基于 Express 组织请求接入与业务处理" in text
         and "实现订单创建与状态流转" in text
-        and "订单创建、业务处理与状态演进的完整业务闭环" in text
+        and "状态驱动方式约束订单生命周期" in text
         for text in texts
     )
+    assert all(len(text) >= 55 for text in texts)
     assert all("Controller" not in text for text in texts)
     assert all("Service" not in text for text in texts)
     assert all("Repository" not in text for text in texts)
@@ -59,7 +62,7 @@ def test_resume_entry_is_paste_ready(sample_repo):
     assert all(not unsupported_metrics.search(text) for text in texts)
 
 
-def test_project_summary_adds_only_commit_backed_cache_context(sample_repo):
+def test_project_summary_keeps_cache_mechanism_in_contribution(sample_repo):
     result, _, _, _ = _analyze_alice(sample_repo)
     base_summary = _project_summary(
         result.business,
@@ -81,7 +84,9 @@ def test_project_summary_adds_only_commit_backed_cache_context(sample_repo):
         result.tech_stack,
         [*result.commits, cache_commit],
     )
-    assert "Redis 缓存优化订单查询" in rich_summary
+    assert "并兼顾高频查询效率" in rich_summary
+    assert "Redis 缓存优化订单查询" not in rich_summary
+    assert len(rich_summary) <= 180
 
 
 def test_commit_context_enriches_personal_contributions(sample_repo):
@@ -104,7 +109,8 @@ def test_commit_context_enriches_personal_contributions(sample_repo):
         architecture=result.architecture,
     )
     assert "接入支付回调并处理支付结果" in payment_claim.text
-    assert "支付结果接收与业务处理链路" in payment_claim.text
+    assert "基于 Express 组织请求接入与业务处理" in payment_claim.text
+    assert "回调接收、支付结果处理与业务响应流程" in payment_claim.text
     assert "Controller" not in payment_claim.text
     assert "Service" not in payment_claim.text
 
@@ -120,7 +126,8 @@ def test_commit_context_enriches_personal_contributions(sample_repo):
         architecture=result.architecture,
     )
     assert "引入 Redis 缓存机制" in cache_claim.text
-    assert "减少重复数据访问" in cache_claim.text
+    assert "将重复读取前移至缓存层" in cache_claim.text
+    assert "减少对 MySQL 的重复访问" in cache_claim.text
     assert "Service" not in cache_claim.text
     assert "查询高频查询" not in cache_claim.text
 
@@ -136,8 +143,9 @@ def test_user_context_is_used_but_validated_against_repository(sample_repo, tmp_
 
     assert resume is not None
     summary = resume["project_entry"]["summary"]
-    assert summary.startswith("公司内部真实上线的订单系统，业务场景要求高可用、高并发。")
-    assert "项目基于 Express、MySQL、Redis" in summary
+    assert summary.startswith("公司内部真实上线的订单系统，业务场景要求高可用、高并发；")
+    assert "基于 Express、MySQL、Redis" in summary
+    assert summary.count("。") <= 2
     assert any(
         item.startswith("用户提供背景：公司内部真实上线")
         for item in resume["project_context_evidence"]
@@ -213,6 +221,66 @@ def test_commit_backed_strategy_pattern_is_named(sample_repo):
     )
 
     assert "采用策略模式组织可变业务规则" in claim.text
+
+
+def test_repository_context_word_does_not_claim_repository_pattern(sample_repo):
+    result, _, _, _ = _analyze_alice(sample_repo)
+    author = next(a for a in result.authors if a.author_email == "alice@example.com")
+    commit = result.commits[0].model_copy(update={
+        "message": "feat: enrich resume output with repository context",
+        "inferred_type": "feature",
+        "changed_files": ["contrib_skill/generators/resume_generator.py"],
+        "changed_modules": ["generators"],
+    })
+
+    claim = _claim_from_group(
+        [commit], author, result.tech_stack,
+        business=result.business,
+        architecture=result.architecture,
+    )
+
+    assert "Repository 模式" not in claim.text
+
+
+def test_project_context_validation_is_not_misclassified_as_user_module(sample_repo):
+    result, _, _, _ = _analyze_alice(sample_repo)
+    author = next(a for a in result.authors if a.author_email == "alice@example.com")
+    commit = result.commits[0].model_copy(update={
+        "message": "feat: validate user-provided project context",
+        "inferred_type": "feature",
+        "changed_files": ["contrib_skill/analyzers/project_context_validator.py"],
+        "changed_modules": ["analyzers"],
+    })
+
+    claim = _claim_from_group(
+        [commit], author, result.tech_stack,
+        business=result.business,
+        architecture=result.architecture,
+    )
+
+    assert "项目背景可信校验机制建设" in claim.text
+    assert "背景声明解析与仓库证据校验" in claim.text
+    assert "用户与账号" not in claim.text
+
+
+def test_business_benchmark_commit_keeps_its_order_topic(sample_repo):
+    result, _, _, _ = _analyze_alice(sample_repo)
+    author = next(a for a in result.authors if a.author_email == "alice@example.com")
+    commit = result.commits[0].model_copy(update={
+        "message": "feat: benchmark order query endpoint",
+        "inferred_type": "feature",
+        "changed_files": ["src/service/order_service.js"],
+        "changed_modules": ["service"],
+    })
+
+    claim = _claim_from_group(
+        [commit], author, result.tech_stack,
+        business=result.business,
+        architecture=result.architecture,
+    )
+
+    assert "订单核心链路建设" in claim.text
+    assert "报告与简历生成" not in claim.text
 
 
 def test_markdown_separates_resume_body_from_audit(sample_repo, tmp_path):

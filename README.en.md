@@ -28,6 +28,7 @@ It is not a commit counter, and it is not a resume fabricator. It digs out the w
 
 - **Evidence chain first**: every conclusion is grounded in Git evidence and strictly labeled as *fact*, *high-confidence inference*, or *low-confidence assumption*, with an explicit confidence level (high/medium/low)
 - **Repository-context enrichment**: combines the README, core flows, architecture layers, detected stack, commit semantics, and changed files into complete context → approach → action → technical-effect narratives
+- **Balanced information density**: keeps the project summary to one or two requirement-oriented sentences, then concentrates technical approaches, mechanisms, and evidence-backed results in three or four numbered contributions
 - **No credit-stealing**: if a core module was mainly committed by others, the strongest wording generated is "contributed to / assisted with"
 - **Strong claims require strong evidence**: "led", "built from scratch", "solely responsible" are only allowed when backed by project-initialization commits and a high contribution level; otherwise the claim is marked `risky` with a suggested downgrade
 - **Zero fabricated metrics**: without benchmark or load-test evidence in the repository, numbers like "improved performance by 30%" or "handles millions of concurrent users" are never generated — instead you get a checklist of real metrics worth adding
@@ -128,7 +129,7 @@ contrib-skill analyze \
   --output ./output
 ```
 
-Without a measured report, no throughput or latency metrics are generated. Production benchmarking is refused by default and requires explicit authorization plus `--allow-production`.
+Without a measured report, no throughput or latency metrics are generated. When a related performance contribution exists, load configuration and measurements are merged into that numbered item; otherwise the tool emits a standalone STAR item. Production benchmarking is refused by default and requires explicit authorization plus `--allow-production`.
 
 ### Options
 
@@ -166,7 +167,7 @@ contrib_output/
   full_report.md             # consolidated report
 ```
 
-> 📂 See [docs/example-output/](docs/example-output/) for a complete, unedited run against a simulated e-commerce repository.
+> 📂 See [docs/example-output/](docs/example-output/) for a complete, unedited run against a simulated e-commerce repository, and [docs/benchmark-resume-example.md](docs/benchmark-resume-example.md) for an environment-qualified measured-data example.
 
 ## Risk levels
 
