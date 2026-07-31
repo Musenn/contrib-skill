@@ -29,10 +29,12 @@ def test_resume_entry_is_paste_ready(sample_repo):
     assert resume["project_entry"]["project_name"] == sample_repo.name
     assert resume["project_entry"]["subtitle"] == "电商订单与支付"
     summary = resume["project_entry"]["summary"]
-    assert "电商订单与支付后端服务" in summary
+    assert "面向电商交易中的订单处理与支付结果衔接需求" in summary
+    assert "项目聚焦订单状态流转和支付回调处理" in summary
     assert "基于 Express、MySQL、Redis" in summary
     assert "订单创建与状态流转、支付与回调处理" in summary
-    assert "接口接入与业务逻辑解耦" in summary
+    assert "采用分层架构" in summary
+    assert "DDD" not in summary
 
     texts = [claim.text for claim in resume["ready_bullets"]]
     assert any(
@@ -192,6 +194,25 @@ def test_commit_message_topic_outranks_generic_skill_path(sample_repo):
 
 def test_generic_feature_effect_has_high_level_fallback():
     assert _feature_effect("搜索", "新增筛选能力", "") == "形成可独立讲清的功能闭环"
+
+
+def test_commit_backed_strategy_pattern_is_named(sample_repo):
+    result, _, _, _ = _analyze_alice(sample_repo)
+    author = next(a for a in result.authors if a.author_email == "alice@example.com")
+    commit = result.commits[0].model_copy(update={
+        "message": "feat: add discount strategy",
+        "inferred_type": "feature",
+        "changed_files": ["src/domain/pricing/discount_strategy.js"],
+        "changed_modules": ["domain"],
+    })
+
+    claim = _claim_from_group(
+        [commit], author, result.tech_stack,
+        business=result.business,
+        architecture=result.architecture,
+    )
+
+    assert "采用策略模式组织可变业务规则" in claim.text
 
 
 def test_markdown_separates_resume_body_from_audit(sample_repo, tmp_path):

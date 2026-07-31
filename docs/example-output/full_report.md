@@ -38,7 +38,7 @@
   - 来源：用户提供
   - 风险等级：`risky`
   - 分析：仓库证据不足以证明整体项目满足高可用要求；未形成可核验的冗余部署、故障转移、流量保护和可观测性证据链。
-  - 校验证据：架构判断：MVC / Model-Service-Controller 倾向
+  - 校验证据：架构判断：Controller-Service 分层架构
   - 校验证据：部署识别：未识别
 - **声明**：整体项目满足高并发要求
   - 来源：用户提供
@@ -67,7 +67,7 @@
 
 # 架构分析
 
-- **架构风格**：MVC / Model-Service-Controller 倾向
+- **架构风格**：Controller-Service 分层架构
 - **置信度**：中
 
 ## 分层分析
@@ -85,6 +85,10 @@
 - 主要框架：Express（来自 package.json）
 - 数据存储：MySQL
 - 中间件：Redis
+
+## 架构与设计模式（仅列证据命中项）
+
+- **分层架构**：src/controller、src/service、tests/order_service.test.js、src/service/order_service.js
 
 ## 架构优势（基于可见证据）
 
@@ -227,7 +231,7 @@
 
 **技术栈**：JavaScript · Express · MySQL · Redis · npm/yarn/pnpm · Jest
 
-**项目简介**：公司内部使用的订单与支付系统，业务场景要求高可用、高并发。项目基于 Express、MySQL、Redis 的电商订单与支付后端服务，围绕订单创建与状态流转、支付与回调处理构建核心业务流程。采用接口接入与业务逻辑解耦的模块化设计；通过 Redis 缓存优化订单查询与数据访问路径；配套 Jest 单元测试形成自动化回归入口。
+**项目简介**：公司内部使用的订单与支付系统，业务场景要求高可用、高并发。面向电商交易中的订单处理与支付结果衔接需求，项目聚焦订单状态流转和支付回调处理，并兼顾高频查询效率。项目基于 Express、MySQL、Redis 构建电商订单与支付核心能力，串联订单创建与状态流转、支付与回调处理等关键流程。采用分层架构，组织核心模块与扩展边界；通过 Redis 缓存优化订单查询与数据访问路径；配套 Jest 单元测试形成自动化回归入口。
 
 1. 参与项目工程基线建设，基于 Express + MySQL + Redis 完成基础工程、依赖与运行配置整合，为电商订单与支付相关能力的持续迭代提供统一基础。
 2. 参与订单核心能力建设，实现订单创建与状态流转，形成覆盖订单创建、业务处理与状态演进的完整业务闭环。
@@ -243,6 +247,7 @@
 - 证据：领域关键词命中：payment, pay, 支付, 回调
 - 证据：业务流程（仓库语义推断）：订单创建与状态流转 → 支付与回调处理
 - 证据：目录分层：Controller 层（接口/路由）、Service 层（业务逻辑）
+- 证据：架构/设计模式：分层架构
 - 证据：依赖文件：package.json → JavaScript · Express · MySQL · Redis · npm/yarn/pnpm · Jest
 - 证据：技术机制：commit 0a8f8b6 perf: 订单查询增加 redis 缓存
 
@@ -257,7 +262,7 @@
   - 来源：用户提供
   - 风险等级：`risky`
   - 分析：仓库证据不足以证明整体项目满足高可用要求；未形成可核验的冗余部署、故障转移、流量保护和可观测性证据链。
-  - 校验证据：架构判断：MVC / Model-Service-Controller 倾向
+  - 校验证据：架构判断：Controller-Service 分层架构
   - 校验证据：部署识别：未识别
 - **声明**：整体项目满足高并发要求
   - 来源：用户提供
@@ -266,6 +271,7 @@
   - 校验证据：中间件：Redis
   - 校验证据：发现缓存、异步或流量保护相关实现
   - 校验证据：压测/监控证据：未识别
+
 
 ### 1. 参与项目工程基线建设，基于 Express + MySQL + Redis 完成基础工程、依赖与运行配置整合，为电商订单与支付相关能力的持续迭代提供统一基础。
 
@@ -322,13 +328,13 @@
 
 这个项目是支付方向的系统（contrib_demo_repo），技术栈以 Express、MySQL、Redis 为主。我在其中承担项目初始化者、核心业务开发者、后端开发者的角色，主要工作集中在 service、controller。
 
-架构上，MVC / Model-Service-Controller 倾向（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
+架构上，Controller-Service 分层架构（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
 
 ## 三、3 分钟版项目介绍
 
 这个项目是支付方向的系统（contrib_demo_repo），技术栈以 Express、MySQL、Redis 为主。我在其中承担项目初始化者、核心业务开发者、后端开发者的角色，主要工作集中在 service、controller。
 
-架构上，MVC / Model-Service-Controller 倾向（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
+架构上，Controller-Service 分层架构（置信度：中）。我从 2025-01 到 2025-03 共提交 6 次，变更类型以 feature、docs、performance 为主。
 
 业务背景方面：README 描述（事实）：一个简单的电商订单与支付后端服务。
 核心流程：推断：订单创建与状态流转 → 支付与回调处理
@@ -357,7 +363,7 @@ README 描述（事实）：一个简单的电商订单与支付后端服务。 
 
 **Q3：项目整体架构是什么？**
 
-MVC / Model-Service-Controller 倾向。分层情况：Controller 层（接口/路由）；Service 层（业务逻辑）
+Controller-Service 分层架构。分层情况：Controller 层（接口/路由）；Service 层（业务逻辑）
 
 **Q4：为什么选择这个技术栈？**
 
@@ -443,7 +449,7 @@ MVC / Model-Service-Controller 倾向。分层情况：Controller 层（接口/�
 - 来源：用户提供
 - 风险等级：**risky**
 - 分析：仓库证据不足以证明整体项目满足高可用要求；未形成可核验的冗余部署、故障转移、流量保护和可观测性证据链。
-- 校验证据：架构判断：MVC / Model-Service-Controller 倾向
+- 校验证据：架构判断：Controller-Service 分层架构
 - 校验证据：部署识别：未识别
 
 ### 3. 整体项目满足高并发要求

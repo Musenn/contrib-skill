@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from .evidence import (
     ArchitectureEvidence,
     AuthorEvidence,
+    BenchmarkEvidence,
     BusinessContextEvidence,
     GitCommitEvidence,
     ProjectContextAssessment,
@@ -25,4 +26,5 @@ class AnalysisResult(BaseModel):
     target_author: str = ""
     resume_claims: list[ResumeClaim] = Field(default_factory=list)
     project_context_assessments: list[ProjectContextAssessment] = Field(default_factory=list)
+    benchmark: BenchmarkEvidence | None = None
     analysis_params: dict = Field(default_factory=dict)

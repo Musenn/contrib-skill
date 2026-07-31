@@ -44,6 +44,15 @@
 {% endfor %}
 {% endif %}
 
+{% if resume.benchmark_star %}
+### 压测量化成果的 STAR 结构
+
+- **Situation**：{{ resume.benchmark_star.situation }}
+- **Task**：{{ resume.benchmark_star.task }}
+- **Action**：{{ resume.benchmark_star.action }}
+- **Result**：{{ resume.benchmark_star.result }}
+{% endif %}
+
 {% for claim in resume.ready_bullets %}
 ### {{ loop.index }}. {{ claim.text }}
 

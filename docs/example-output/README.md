@@ -34,7 +34,7 @@ contrib-skill analyze \
 
 - `01_project_overview.md`：业务领域被推断为「支付（次要相关：电商/订单交易）」，置信度「高」——来自 README 与 commit 关键词的交叉证据
 - `04_author_contribution.md`：Alice 被识别为项目初始化者、贡献等级「很高」；Bob 的深夜提交、测试角色都有体现
-- `06_resume_bullets.md`：第一部分使用用户背景，并在业务能力/技术方案层生成贡献，不罗列 Controller/Service 等代码层；后半部分明确标注背景来源，并将缺乏完整仓库证据的高可用、高并发声明判为 `risky`
+- `06_resume_bullets.md`：项目简介先交代订单处理、支付衔接与查询效率需求，再说明 Express/MySQL/Redis 方案；证据仅支持 Controller-Service 分层，因此写“分层架构”而不虚构 MVC、DDD 或设计模式；示例未提供压测报告，所以没有量化性能指标
 - `08_claim_risk_report.md`：每条表述的风险裁决与证据列表
 - `evidence.json`：全部结论的结构化证据链（commit 级分类、置信度、推断标注）
 

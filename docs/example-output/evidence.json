@@ -45,7 +45,7 @@
     ]
   },
   "architecture": {
-    "architecture_style": "MVC / Model-Service-Controller 倾向",
+    "architecture_style": "Controller-Service 分层架构",
     "module_map": {
       "src": [
         "src",
@@ -72,6 +72,18 @@
     "architecture_risks": [
       "未发现部署/CI 配置，交付方式无法从仓库确认"
     ],
+    "design_patterns": [
+      "分层架构"
+    ],
+    "pattern_evidence": {
+      "分层架构": [
+        "src/controller",
+        "src/service",
+        "tests/order_service.test.js",
+        "src/service/order_service.js",
+        "src/service/payment_service.js"
+      ]
+    },
     "confidence": "中"
   },
   "business": {
@@ -485,7 +497,7 @@
       "risk_level": "risky",
       "analysis": "仓库证据不足以证明整体项目满足高可用要求；未形成可核验的冗余部署、故障转移、流量保护和可观测性证据链。",
       "support_evidence": [
-        "架构判断：MVC / Model-Service-Controller 倾向",
+        "架构判断：Controller-Service 分层架构",
         "部署识别：未识别"
       ]
     },
@@ -501,6 +513,7 @@
       ]
     }
   ],
+  "benchmark": null,
   "analysis_params": {
     "base": null,
     "branch": null,

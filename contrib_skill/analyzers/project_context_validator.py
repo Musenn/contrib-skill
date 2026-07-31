@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from ..models import (
     ArchitectureEvidence,
+    BenchmarkEvidence,
     GitCommitEvidence,
     ProjectContextAssessment,
     RISK_NEEDS_CONFIRMATION,
@@ -16,6 +17,7 @@ def validate_project_context(
     architecture: ArchitectureEvidence,
     tech: TechStackEvidence,
     commits: list[GitCommitEvidence],
+    benchmark: BenchmarkEvidence | None = None,
 ) -> list[ProjectContextAssessment]:
     context = " ".join(context.split()).strip()
     if not context:
@@ -45,7 +47,7 @@ def validate_project_context(
     if any(word in low for word in ("高可用", "high availability", "ha 架构")):
         assessments.append(_availability_assessment(repository_corpus, architecture, tech))
     if any(word in low for word in ("高并发", "high concurrency", "大并发")):
-        assessments.append(_concurrency_assessment(repository_corpus, tech))
+        assessments.append(_concurrency_assessment(repository_corpus, tech, benchmark))
     return assessments
 
 
@@ -88,17 +90,28 @@ def _availability_assessment(
 def _concurrency_assessment(
     corpus: str,
     tech: TechStackEvidence,
+    benchmark: BenchmarkEvidence | None = None,
 ) -> ProjectContextAssessment:
     mechanism_signals: list[str] = []
     if any(name in tech.middlewares for name in ("Redis", "Kafka", "RabbitMQ", "RocketMQ")):
         mechanism_signals.append(f"中间件：{'、'.join(tech.middlewares)}")
     if any(word in corpus for word in ("异步", "队列", "缓存", "cache", "限流", "rate limit")):
         mechanism_signals.append("发现缓存、异步或流量保护相关实现")
-    benchmark = any(word in corpus for word in (
+    benchmark_signal = any(word in corpus for word in (
         "benchmark", "压测", "load test", "jmeter", "gatling", "k6", "qps", "tps", "p95", "p99",
     ))
 
-    if benchmark and mechanism_signals:
+    if benchmark:
+        risk = RISK_NEEDS_CONFIRMATION
+        analysis = (
+            "已有可复核压测报告，可按测试环境实测值描述吞吐与延迟；"
+            "但测试结果不等同于生产环境整体高并发承载能力。"
+        )
+        mechanism_signals.append(
+            f"实测：{benchmark.concurrency} 并发 / {benchmark.total_requests} 次请求 / "
+            f"{benchmark.requests_per_second:.2f} QPS / P95 {benchmark.latency_p95_ms:.2f} ms"
+        )
+    elif benchmark_signal and mechanism_signals:
         risk = RISK_NEEDS_CONFIRMATION
         analysis = "仓库存在并发处理机制与压测信号，但整体高并发能力仍需核验压测报告、数据规模与部署环境。"
     else:
@@ -108,7 +121,10 @@ def _concurrency_assessment(
             "即使存在缓存或消息中间件，也缺少可核验的压测、吞吐量或线上监控数据。"
         )
     evidence = mechanism_signals[:2]
-    evidence.append("压测/监控证据：已识别" if benchmark else "压测/监控证据：未识别")
+    evidence.append(
+        f"压测报告：{benchmark.source_file}" if benchmark
+        else ("压测/监控信号：已识别但无结构化报告" if benchmark_signal else "压测/监控证据：未识别")
+    )
     return ProjectContextAssessment(
         statement="整体项目满足高并发要求",
         risk_level=risk,

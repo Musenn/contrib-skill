@@ -11,6 +11,7 @@ from rich.table import Table
 from .analyzers.architecture_analyzer import analyze_architecture
 from .analyzers.author_profiler import build_author_evidence, compute_all_scores
 from .analyzers.business_context_analyzer import analyze_business_context
+from .analyzers.benchmark_loader import load_benchmark_report
 from .analyzers.claim_risk_checker import module_ownership
 from .analyzers.diff_analyzer import classify_commit
 from .analyzers.git_analyzer import GitAnalyzer
@@ -51,6 +52,10 @@ def analyze(
         "", "--project-context",
         help="用户确认的项目性质/使用场景，如公司内部上线系统或开源项目；将写入简历并单独校验",
     ),
+    benchmark_report: Optional[str] = typer.Option(
+        None, "--benchmark-report",
+        help="显式压测后生成的 JSON 报告；只有提供有效报告时才生成量化 STAR 成果",
+    ),
     language: str = typer.Option("zh", "--language", help=f"输出语言：{'/'.join(LANGUAGES)}（MVP 报告以中文为主，简历含英文版）"),
     output: str = typer.Option("./contrib_output", "--output", help="输出目录"),
     max_commits: int = typer.Option(2000, "--max-commits", help="最大分析 commit 数"),
@@ -62,6 +67,7 @@ def analyze(
         repo=repo, author=author, all_authors=all_authors, base=base,
         branch=branch, since=since, until=until, mode=mode,
         target_role=target_role, project_context=project_context,
+        benchmark_report=benchmark_report,
         language=language, output=output,
         max_commits=max_commits, include_diff=include_diff, strict=strict,
     )
@@ -92,14 +98,18 @@ def run_analysis(opts: AnalyzeOptions):
 
     structure = scan_repo(repo_path)
     tech = detect_tech_stack(repo_path, structure)
-    arch = analyze_architecture(structure, tech)
+    arch = analyze_architecture(structure, tech, commits)
     project_name = repo_path.name
     biz = analyze_business_context(repo_path, structure, commits, project_name)
 
     # commit 语义分类
     commit_evidence = [classify_commit(c, opts.include_diff) for c in commits]
+    benchmark = (
+        load_benchmark_report(opts.benchmark_report)
+        if opts.benchmark_report else None
+    )
     context_assessments = validate_project_context(
-        opts.project_context, arch, tech, commit_evidence
+        opts.project_context, arch, tech, commit_evidence, benchmark
     )
     evidence_by_hash = {e.hash: e for e in commit_evidence}
 
@@ -147,6 +157,7 @@ def run_analysis(opts: AnalyzeOptions):
         authors=authors,
         target_author=opts.author or "",
         project_context_assessments=context_assessments,
+        benchmark=benchmark,
         analysis_params={
             "base": opts.base, "branch": opts.branch,
             "since": opts.since, "until": opts.until,
@@ -154,6 +165,7 @@ def run_analysis(opts: AnalyzeOptions):
             "max_commits": opts.max_commits,
             "has_tests": bool(structure.test_dirs),
             "project_context": opts.project_context,
+            "benchmark_report": opts.benchmark_report,
         },
     )
 
@@ -167,6 +179,7 @@ def run_analysis(opts: AnalyzeOptions):
             repository_commits=commit_evidence,
             project_context=opts.project_context,
             context_assessments=context_assessments,
+            benchmark=benchmark,
         )
         interview = generate_interview(result, target_ev, target_commits)
         result.resume_claims = resume["ready_bullets"]

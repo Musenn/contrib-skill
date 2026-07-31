@@ -107,6 +107,31 @@ contrib-skill analyze --repo ./project --all-authors
 contrib-skill analyze --repo ./project --author alice --strict
 ```
 
+### 可选：显式压测后生成量化 STAR 成果
+
+仅在用户明确要求压测，并确认目标是本地、测试或预发布环境后执行：
+
+```bash
+# 1. 先启动待测服务，再执行可复核的 HTTP 压测
+contrib-benchmark \
+  --url http://127.0.0.1:8080/api/orders \
+  --scenario "订单查询接口" \
+  --environment test \
+  --requests 1000 \
+  --concurrency 20 \
+  --output ./benchmark/order-query.json
+
+# 2. 将实测报告作为简历量化证据
+contrib-skill analyze \
+  --repo ./project \
+  --author alice \
+  --mode resume \
+  --benchmark-report ./benchmark/order-query.json \
+  --output ./output
+```
+
+压测脚本记录请求数、并发数、成功率、QPS 与 P50/P95/P99。没有报告时生成器不会输出这些指标；本地/测试结果会明确标注环境，不会包装成生产承载能力。默认拒绝生产环境压测，除非用户再次明确授权并显式使用 `--allow-production`。
+
 ### 参数
 
 | 参数 | 说明 |
@@ -119,6 +144,7 @@ contrib-skill analyze --repo ./project --author alice --strict
 | `--mode` | `full`（全部）/ `resume`（简历向）/ `interview`（面试向）/ `audit`（审计向）/ `strict` |
 | `--target-role` | 目标岗位，生成简历适配建议（技术栈不匹配时会如实提醒） |
 | `--project-context` | 用户确认的项目性质/使用场景；正文按此背景撰写，审计区会用仓库证据校验高可用、高并发、上线等强声明 |
+| `--benchmark-report` | `contrib-benchmark` 或等价脚本生成的实测 JSON；提供后生成带环境说明的量化 STAR 成果 |
 | `--language` | `zh` / `en`（MVP 报告与可粘贴简历主稿以中文为主） |
 | `--output` | 输出目录，默认 `./contrib_output` |
 | `--max-commits` | 最大分析 commit 数，默认 2000 |
@@ -142,7 +168,7 @@ contrib_output/
   full_report.md             # 汇总报告
 ```
 
-> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。示例显式提供了“公司内部使用、高可用、高并发”背景：正文按该背景撰写，审计区同时指出仓库缺少高可用/高并发的完整证据链。贡献序号保持业务与方案层表达，Git 文件与分层证据单独留在审计区。
+> 📂 完整输出示例见 [docs/example-output/](docs/example-output/)（一个模拟电商仓库的真实运行结果，未做手工修改）。项目简介先写订单处理、支付衔接和查询效率等需求，再写技术方案；MVC/DDD/Repository/Strategy 等词汇只在证据命中时出现。示例未提供压测报告，因此不会生成任何量化性能指标。
 
 ## 风险分级
 

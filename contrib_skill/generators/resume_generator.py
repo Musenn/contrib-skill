@@ -9,6 +9,7 @@ from ..analyzers.claim_risk_checker import check_claim
 from ..models import (
     ArchitectureEvidence,
     AuthorEvidence,
+    BenchmarkEvidence,
     BusinessContextEvidence,
     GitCommitEvidence,
     ProjectEvidence,
@@ -62,10 +63,13 @@ def generate_resume(
     repository_commits: list[GitCommitEvidence] | None = None,
     project_context: str = "",
     context_assessments: list[ProjectContextAssessment] | None = None,
+    benchmark: BenchmarkEvidence | None = None,
 ) -> dict:
     """Build a context-rich project entry, then keep evidence outside the paste area."""
     context_commits = repository_commits or author_commits
-    selected_groups = _select_resume_groups(author_commits, max_items=4)
+    selected_groups = _select_resume_groups(
+        author_commits, max_items=3 if benchmark else 4
+    )
     ready_bullets = [
         _claim_from_group(
             group, author_ev, tech,
@@ -74,6 +78,9 @@ def generate_resume(
         )
         for group in selected_groups
     ]
+    benchmark_claim = _benchmark_star_claim(benchmark, author_ev) if benchmark else None
+    if benchmark_claim:
+        ready_bullets.append(benchmark_claim)
     if strict:
         ready_bullets = [c for c in ready_bullets if c.risk_level == RISK_SAFE]
 
@@ -94,9 +101,10 @@ def generate_resume(
         "project_entry": project_entry,
         "ready_bullets": ready_bullets,
         "project_context_evidence": _project_context_evidence(
-            business, architecture, tech, context_commits, project_context
+            business, architecture, tech, context_commits, project_context, benchmark
         ),
         "context_assessments": context_assessments or [],
+        "benchmark_star": _benchmark_star(benchmark) if benchmark else None,
         "confirmation_prompts": _confirmation_prompts(
             [commit for group in selected_groups for commit in group],
             business,
@@ -107,7 +115,7 @@ def generate_resume(
         "conservative": ready_bullets,
         "standard": ready_bullets,
         "enhanced": ready_bullets,
-        "star": [],
+        "star": [_benchmark_star(benchmark)] if benchmark else [],
         "english": [],
     }
 
@@ -201,6 +209,7 @@ def _claim_from_group(
     verb = _role_verb(author_ev, modules)
     topic = _topic_label(commits)
     layer = _layer_phrase(commits)
+    pattern_phrase = _commit_pattern_phrase(commits)
 
     if commit.inferred_type == "architecture" or _looks_like_initialization(summary):
         project_scope = _project_scope_label(business)
@@ -211,7 +220,7 @@ def _claim_from_group(
         )
     elif commit.inferred_type == "feature":
         text = (
-            f"{verb}{topic}核心能力建设，{_business_action(topic, summary)}，"
+            f"{verb}{topic}核心能力建设，{pattern_phrase}{_business_action(topic, summary)}，"
             f"{_feature_effect(topic, summary, layer)}。"
         )
     elif commit.inferred_type == "security":
@@ -374,6 +383,27 @@ def _business_action(topic: str, summary: str) -> str:
     return action
 
 
+def _commit_pattern_phrase(commits: list[GitCommitEvidence]) -> str:
+    corpus = " ".join(
+        [commit.message for commit in commits]
+        + [path for commit in commits for path in commit.changed_files]
+    ).lower()
+    rules = (
+        ("策略模式组织可变业务规则", ("strategy", "策略")),
+        ("工厂模式封装对象创建", ("factory", "工厂")),
+        ("适配器模式统一外部能力接入", ("adapter", "适配器")),
+        ("观察者模式解耦事件发布与处理", ("observer", "listener", "观察者")),
+        ("责任链模式编排多阶段处理", ("handler_chain", "chain_of_responsibility", "责任链")),
+        ("Repository 模式隔离业务逻辑与数据访问", ("repository",)),
+        ("DAO 模式封装数据访问", ("/dao/",)),
+        ("Data Mapper 模式完成对象与存储映射", ("mapper",)),
+    )
+    for description, keywords in rules:
+        if any(keyword in corpus for keyword in keywords):
+            return f"采用{description}，"
+    return ""
+
+
 def _performance_claim(
     summary: str,
     topic: str,
@@ -465,38 +495,36 @@ def _project_summary(
     commits: list[GitCommitEvidence],
     project_context: str = "",
 ) -> str:
-    base = _clean_context_text(business.project_goal if business else "")
-    if not base or "无 README" in base:
-        base = f"围绕{_project_subtitle(business)}场景建设的工程项目"
-    else:
-        base = base.rstrip("。")
-
     tech_context = _context_tech_string(tech)
-    if tech_context and not any(item.lower() in base.lower() for item in _tech_items(tech)):
-        noun = re.sub(r"^一个(?:简单的)?", "", base).strip()
-        base = f"一个基于 {tech_context} 的{noun}"
-
     flow = _clean_context_text(business.core_business_flow if business else "")
-    if flow and not any(word in flow for word in ("无法", "需确认", "证据不足")):
-        flow = re.sub(r"\s*→\s*", "、", flow)
-        prefix_space = " " if re.match(r"[A-Za-z0-9]", flow) else ""
-        first_sentence = f"{base}，围绕{prefix_space}{flow}构建核心业务流程。"
+    valid_flow = flow and not any(word in flow for word in ("无法", "需确认", "证据不足"))
+    flow_text = re.sub(r"\s*→\s*", "、", flow) if valid_flow else ""
+    scope = _project_scope_label(business)
+    if tech_context and flow_text:
+        solution_sentence = (
+            f"项目基于 {tech_context} 构建{scope}核心能力，"
+            f"串联{flow_text}等关键流程。"
+        )
+    elif tech_context:
+        solution_sentence = f"项目基于 {tech_context} 构建{scope}核心能力。"
+    elif flow_text:
+        solution_sentence = f"项目围绕{flow_text}构建{scope}核心能力。"
     else:
-        first_sentence = f"{base}。"
+        goal = _clean_context_text(business.project_goal if business else "")
+        solution_sentence = f"项目聚焦{goal or scope}。"
 
     context_parts: list[str] = []
-    layer_context = _project_layer_context(architecture)
-    if layer_context:
-        context_parts.append(layer_context)
+    architecture_context = _architecture_vocabulary(architecture)
+    if architecture_context:
+        context_parts.append(architecture_context)
     context_parts.extend(_repository_mechanisms(commits, tech))
     second_sentence = "；".join(context_parts[:3])
     context_sentence = _user_context_sentence(project_context)
-    if context_sentence and first_sentence.startswith("一个"):
-        first_sentence = f"项目{first_sentence[2:]}"
-    summary = f"{context_sentence}{first_sentence}" if context_sentence else first_sentence
+    requirement_sentence = _requirement_background(business, commits)
+    summary = f"{context_sentence}{requirement_sentence}{solution_sentence}"
     if second_sentence:
         summary += f"{second_sentence}。"
-    return summary[:320]
+    return summary[:420]
 
 
 def _clean_context_text(text: str) -> str:
@@ -519,16 +547,50 @@ def _context_tech_string(tech: TechStackEvidence) -> str:
     return "、".join(items[:5])
 
 
-def _project_layer_context(architecture: ArchitectureEvidence | None) -> str:
+def _architecture_vocabulary(architecture: ArchitectureEvidence | None) -> str:
     if not architecture or architecture.confidence == "低":
         return ""
-    layers = " ".join(architecture.layer_analysis).lower()
-    if "controller" in layers and "service" in layers:
-        if any(word in layers for word in ("repository", "mapper", "dao")):
-            return "采用接口接入、业务逻辑与数据访问职责分离的模块化设计"
-        return "采用接口接入与业务逻辑解耦的模块化设计"
+    if architecture.design_patterns:
+        patterns = "、".join(architecture.design_patterns[:3])
+        separator = " " if re.match(r"[A-Za-z]", patterns) else ""
+        return f"采用{separator}{patterns}，组织核心模块与扩展边界"
+    style = architecture.architecture_style.lower()
+    if "mvc" in style:
+        return "采用 MVC 分层架构组织接口接入与业务职责"
+    if "单体" in architecture.architecture_style:
+        return "采用模块化单体架构划分核心职责"
     if architecture.layer_analysis:
         return "按核心职责划分模块边界，保持功能组织与扩展路径清晰"
+    return ""
+
+
+def _requirement_background(
+    business: BusinessContextEvidence | None,
+    commits: list[GitCommitEvidence],
+) -> str:
+    if not business:
+        return ""
+    corpus = " ".join((
+        business.inferred_domain,
+        business.project_goal,
+        business.core_business_flow,
+    )).lower()
+    if "开发者工具" in corpus or ("git" in corpus and "简历" in corpus):
+        return (
+            "面向需要从 Git 历史还原个人工作的开发者，"
+            "项目解决提交记录难以直接转化为可信简历与面试材料的问题。"
+        )
+    if "订单" in corpus and "支付" in corpus:
+        performance = any(commit.inferred_type == "performance" for commit in commits)
+        suffix = "，并兼顾高频查询效率" if performance else ""
+        return (
+            "面向电商交易中的订单处理与支付结果衔接需求，"
+            f"项目聚焦订单状态流转和支付回调处理{suffix}。"
+        )
+    flow = _clean_context_text(business.core_business_flow)
+    if flow and "无法" not in flow:
+        flow = re.sub(r"\s*→\s*", "、", flow)
+        return f"面向{_project_subtitle(business)}场景的多环节协同需求，项目聚焦{flow}流程衔接。"
     return ""
 
 
@@ -557,6 +619,7 @@ def _project_context_evidence(
     tech: TechStackEvidence,
     commits: list[GitCommitEvidence],
     project_context: str = "",
+    benchmark: BenchmarkEvidence | None = None,
 ) -> list[str]:
     evidence: list[str] = []
     if project_context.strip():
@@ -568,6 +631,8 @@ def _project_context_evidence(
             evidence.append(f"业务流程（仓库语义推断）：{flow}")
     if architecture and architecture.layer_analysis:
         evidence.append(f"目录分层：{'、'.join(architecture.layer_analysis[:4])}")
+    if architecture and architecture.design_patterns:
+        evidence.append(f"架构/设计模式：{'、'.join(architecture.design_patterns)}")
     if tech.evidence_files:
         evidence.append(
             f"依赖文件：{'、'.join(tech.evidence_files[:3])} → {_tech_string(tech)}"
@@ -579,7 +644,63 @@ def _project_context_evidence(
         ):
             evidence.append(f"技术机制：commit {commit.short_hash} {commit.message}")
             break
+    if benchmark:
+        evidence.append(
+            f"压测报告：{benchmark.source_file}（{benchmark.environment} 环境，"
+            f"{benchmark.total_requests} 次请求 / {benchmark.concurrency} 并发）"
+        )
     return list(dict.fromkeys(evidence))
+
+
+def _benchmark_star(benchmark: BenchmarkEvidence) -> dict[str, str]:
+    environment = _environment_label(benchmark.environment)
+    return {
+        "situation": f"{benchmark.scenario}在并发访问下缺乏可复核的响应稳定性与容量基线",
+        "task": f"在{environment}环境验证接口吞吐、成功率与尾延迟",
+        "action": (
+            f"编写并执行 HTTP 压测脚本，以 {benchmark.concurrency} 并发"
+            f"完成 {benchmark.total_requests} 次请求"
+        ),
+        "result": (
+            f"实测成功率 {benchmark.success_rate:.2f}%，吞吐量 "
+            f"{benchmark.requests_per_second:.2f} QPS，P95 延迟 "
+            f"{benchmark.latency_p95_ms:.2f} ms"
+        ),
+    }
+
+
+def _benchmark_star_claim(
+    benchmark: BenchmarkEvidence,
+    author_ev: AuthorEvidence,
+) -> ResumeClaim:
+    star = _benchmark_star(benchmark)
+    text = (
+        f"针对{star['situation']}，承担{star['task']}任务；{star['action']}，"
+        f"{star['result']}，"
+        "为后续容量评估与性能优化提供可复核基线。"
+    )
+    evidence = [
+        f"benchmark report: {benchmark.source_file}",
+        f"tool={benchmark.tool}; environment={benchmark.environment}; target={benchmark.target}",
+    ]
+    return check_claim(
+        text,
+        author_ev,
+        evidence,
+        has_benchmark_evidence=True,
+    )
+
+
+def _environment_label(value: str) -> str:
+    labels = {
+        "local": "本地",
+        "test": "测试",
+        "testing": "测试",
+        "staging": "预发布",
+        "prod": "生产",
+        "production": "生产",
+    }
+    return labels.get(value.lower(), value)
 
 
 def _architecture_baseline(architecture: ArchitectureEvidence | None) -> str:

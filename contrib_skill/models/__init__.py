@@ -1,6 +1,7 @@
 from .git_models import AuthorStats, Commit, FileStat
 from .evidence import (
     ArchitectureEvidence,
+    BenchmarkEvidence,
     AuthorEvidence,
     BusinessContextEvidence,
     GitCommitEvidence,
@@ -22,6 +23,7 @@ __all__ = [
     "Commit",
     "FileStat",
     "ArchitectureEvidence",
+    "BenchmarkEvidence",
     "AuthorEvidence",
     "BusinessContextEvidence",
     "GitCommitEvidence",

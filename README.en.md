@@ -107,6 +107,29 @@ contrib-skill analyze --repo ./project --all-authors
 contrib-skill analyze --repo ./project --author alice --strict
 ```
 
+### Optional: measured benchmark + STAR result
+
+Run only after the user explicitly requests a benchmark and confirms a local/test/staging target:
+
+```bash
+contrib-benchmark \
+  --url http://127.0.0.1:8080/api/orders \
+  --scenario "Order query API" \
+  --environment test \
+  --requests 1000 \
+  --concurrency 20 \
+  --output ./benchmark/order-query.json
+
+contrib-skill analyze \
+  --repo ./project \
+  --author alice \
+  --mode resume \
+  --benchmark-report ./benchmark/order-query.json \
+  --output ./output
+```
+
+Without a measured report, no throughput or latency metrics are generated. Production benchmarking is refused by default and requires explicit authorization plus `--allow-production`.
+
 ### Options
 
 | Option | Description |
@@ -119,6 +142,7 @@ contrib-skill analyze --repo ./project --author alice --strict
 | `--mode` | `full` / `resume` / `interview` / `audit` / `strict` |
 | `--target-role` | Target job role; produces tailoring advice (and honest warnings when the stack doesn't match) |
 | `--project-context` | User-confirmed project nature/use case; used in the resume context and separately validated against repository evidence |
+| `--benchmark-report` | Measured JSON report from `contrib-benchmark` or an equivalent runner; enables an environment-qualified STAR metric claim |
 | `--language` | `zh` / `en` (MVP reports and the paste-ready resume entry are primarily Chinese) |
 | `--output` | Output directory, defaults to `./contrib_output` |
 | `--max-commits` | Max commits to analyze, default 2000 |
