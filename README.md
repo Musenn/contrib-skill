@@ -34,6 +34,27 @@
 - **量化指标零虚构**：仓库内没有 benchmark / 压测证据时，绝不生成「性能提升 30%」「支撑百万级并发」之类的数字，只输出「可补充真实指标」清单
 - **每条建议带证据**：简历 bullet 附 commit hash、文件路径、变更类型与风险等级
 
+## 生成结果长什么样
+
+以下内容来自仓库内置的模拟订单项目，正文由生成器直接产出，没有手工润色：
+
+> **项目简介**：公司内部使用的订单与支付系统，业务场景要求高可用、高并发；面向电商交易中的订单处理与支付结果衔接需求，项目聚焦订单状态流转和支付回调处理，并兼顾高频查询效率。基于 Express、MySQL、Redis 构建电商订单与支付核心链路，采用分层架构，组织核心模块与扩展边界。
+>
+> 1. 负责项目工程基线建设，基于 Express + MySQL + Redis 完成工程初始化与依赖集成，统一依赖版本、仓库忽略规则和运行说明；为电商订单与支付核心业务模块的后续开发提供一致的工程入口。
+> 2. 参与订单核心链路建设，基于 Express 组织请求接入与业务处理，实现订单创建与状态流转；以状态驱动方式约束订单生命周期，覆盖订单创建、业务处理与状态演进等关键环节。
+> 3. 参与支付核心链路建设，基于 Express 组织请求接入与业务处理，接入支付回调并处理支付结果；打通回调接收、支付结果处理与业务响应流程。
+> 4. 围绕订单查询这一高频场景引入 Redis 缓存机制，将重复读取前移至缓存层，减少对 MySQL 的重复访问，收敛核心查询路径。
+
+生成器遵循与标准技术简历一致的信息分配方式：
+
+| 区域 | 负责表达什么 | 不应该出现什么 |
+| --- | --- | --- |
+| 项目简介 | 项目性质、需求背景、服务对象、系统边界、整体架构 | 过长的技术栈罗列、文件目录、commit 数量 |
+| 编号贡献 | 负责对象、技术方案、关键机制、解决的问题、有依据的结果 | Controller/Service/DAO 逐层点名、无证据设计模式 |
+| 证据映射 | commit、变更文件、用户提供背景、风险等级 | 不复制进正式简历 |
+
+完整结果见 [`docs/example-output/06_resume_bullets.md`](docs/example-output/06_resume_bullets.md)。
+
 ## 工作原理
 
 ```
@@ -45,6 +66,8 @@ Git 仓库
    ├─ DiffAnalyzer           commit 语义分类（feature/bugfix/refactor/… 14 类）
    ├─ ArchitectureAnalyzer   架构风格、分层、模块地图（推断层，带置信度）
    ├─ BusinessContextAnalyzer 业务领域、项目目标、核心流程（推断层，带置信度）
+   ├─ ProjectContextValidator 用户提供背景与仓库证据交叉校验
+   ├─ BenchmarkLoader        读取并验证本地/测试/预发布环境的实测报告
    ├─ AuthorProfiler         作者画像：角色、模块归属、贡献含金量等级
    └─ ClaimRiskChecker       每条简历表述的风险裁决：safe / needs_confirmation / risky
    │
@@ -75,11 +98,37 @@ evidence.json + metrics.json + 8 份 Markdown 报告 + full_report.md
 
 要求 Python 3.10+，本机可执行 `git`。
 
+### 作为 CLI 使用
+
 ```bash
 git clone https://github.com/Musenn/contrib-skill.git
 cd contrib-skill
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
+```
+
+### 作为 Codex Skill 使用
+
+将仓库放入 Codex skills 目录，并安装同一个 Python 包：
+
+```bash
+git clone https://github.com/Musenn/contrib-skill.git "${CODEX_HOME:-$HOME/.codex}/skills/contrib-skill"
+cd "${CODEX_HOME:-$HOME/.codex}/skills/contrib-skill"
+pip install -e ".[dev]"
+```
+
+之后可以直接向 Codex 描述任务，例如：
+
+```text
+分析 E:\code\order-service 中 Alice 的真实贡献。这个项目是公司内部订单系统，
+请校验高可用、高并发背景是否有仓库证据，并生成可直接粘贴的 Java 后端简历项目经历。
+```
+
+需要量化数据时必须明确授权测试环境和负载范围：
+
+```text
+请在本地启动该服务，为订单查询接口编写压测脚本，以 20 并发完成 1000 次请求，
+保存报告，并把成功率、QPS、P95 按 STAR 写入对应的性能贡献。不要压测生产地址。
 ```
 
 ## 快速开始
@@ -133,6 +182,12 @@ contrib-skill analyze \
 
 压测脚本记录请求数、并发数、成功率、QPS 与 P50/P95/P99。没有报告时生成器不会输出这些指标；本地/测试结果会明确标注环境，不会包装成生产承载能力。若作者已有同场景性能贡献，生成器会把测试配置与结果并入对应编号，形成“技术机制 + 实测基线”的完整句子；否则生成独立 STAR 条目。默认拒绝生产环境压测，除非用户再次明确授权并显式使用 `--allow-production`。
 
+实测数据的正确写法示例：
+
+> 针对订单查询接口缺少可复核性能基线的问题，在本地模拟服务的测试环境中编写并执行 HTTP 压测脚本，以 10 并发完成 100 次请求；实测成功率 100.00%、吞吐量 184.30 QPS、P95 延迟 11.02 ms，为后续容量评估与性能优化建立可复核基线。
+
+以上数值来自仓库保存的本地模拟接口报告，仅用于演示数据写法，不能作为真实项目的生产性能结论。原始报告与完整说明见 [`docs/benchmark-resume-example.md`](docs/benchmark-resume-example.md)。
+
 ### 参数
 
 | 参数 | 说明 |
@@ -145,7 +200,7 @@ contrib-skill analyze \
 | `--mode` | `full`（全部）/ `resume`（简历向）/ `interview`（面试向）/ `audit`（审计向）/ `strict` |
 | `--target-role` | 目标岗位，生成简历适配建议（技术栈不匹配时会如实提醒） |
 | `--project-context` | 用户确认的项目性质/使用场景；正文按此背景撰写，审计区会用仓库证据校验高可用、高并发、上线等强声明 |
-| `--benchmark-report` | `contrib-benchmark` 或等价脚本生成的实测 JSON；提供后生成带环境说明的量化 STAR 成果 |
+| `--benchmark-report` | `contrib-benchmark` 或等价脚本生成的实测 JSON；同场景数据并入性能贡献，否则生成独立 STAR 条目 |
 | `--language` | `zh` / `en`（MVP 报告与可粘贴简历主稿以中文为主） |
 | `--output` | 输出目录，默认 `./contrib_output` |
 | `--max-commits` | 最大分析 commit 数，默认 2000 |
